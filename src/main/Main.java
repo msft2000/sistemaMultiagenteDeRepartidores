@@ -8,8 +8,9 @@ import Matrices.MatrizOD;
 
 public class Main {
     public static void main(String[] args) {
-        MatrizOD mat=new MatrizOD("matriz.csv");
-        System.out.println(mat.getNodo("1").getEnlacesOut()[0]);
+        //MatrizOD mat=new MatrizOD("matriz.csv");
+        //System.out.println(mat.getNodo("1").getEnlacesOut()[0]);
+        System.out.println(""+Integer.parseInt(""));
         /*
         Simulation.start(new StringVector(new String[] {"sumo-gui", "-c", "mapa3.sumocfg"}));
         for (int i = 0; i < 2000; i++) {
