@@ -78,7 +78,7 @@ public class MatrizMaster {
             for(int j=0;j<nodosDestino.length;j++){//recorrer los nodos destino de la matriz
                 String idDestino=(String)nodosDestino[j];//id del nodo j
                 String valor=matrizRepartidores.get(i+1)[j+1];//valor en la coordenada origen,destino
-                if(!valor.equals("0")){
+                if(!valor.equals("") && !valor.equals("0")){
                     if(repartidores.isEmpty()){
                         Repartidor primerRepartidor = new Repartidor(valor);
                         primerRepartidor.addEntregasPendientes(getNodo(idOrigen), getNodo(idDestino));

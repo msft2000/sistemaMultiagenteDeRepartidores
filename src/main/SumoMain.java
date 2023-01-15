@@ -1,161 +1,94 @@
 package main;
 
 import Matrices.MatrizOD;
-import jade.content.lang.sl.SLCodec;
-import jade.content.onto.basic.Action;
-import jade.core.Agent;
-import jade.core.ContainerID;
-import jade.core.behaviours.TickerBehaviour;
-import jade.domain.FIPANames;
-import jade.domain.JADEAgentManagement.CreateAgent;
-import jade.domain.JADEAgentManagement.JADEManagementOntology;
-import jade.lang.acl.ACLMessage;
-import jade.proto.AchieveREInitiator;
+import jade.core.Profile;
+import jade.core.ProfileImpl;
+import jade.wrapper.AgentController;
+import jade.wrapper.ContainerController;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
+import org.apache.commons.codec.binary.Hex;
 import org.eclipse.sumo.libtraci.*;
 
-public class SumoMain extends Agent {
+public class SumoMain {
+
     //private ThreadedBehaviourFactory tbf = new ThreadedBehaviourFactory();
     private static SumoMain instance;
-     
-    public static SumoMain getInstance(){
-        if(instance==null){
-            instance=new SumoMain();
+
+    public SumoMain() {
+        //Iniciar el simulador SUMO y cargar la configuración del mapa
+        /*try{java.lang.Runtime.getRuntime().exec(new String[]{"java","jade.Boot","-gui"});}
+        catch(Exception e){}*/
+        System.loadLibrary("libtracijni");
+        Simulation.start(new StringVector(new String[]{"sumo-gui", "-c", "mapa2Way.sumocfg"}));
+        int[] co = new int[2];
+        co[0] = libtraci.getVAR_ARRIVED_VEHICLES_IDS();
+        co[1] = libtraci.getVAR_DEPARTED_VEHICLES_IDS();
+        Simulation.subscribe(new IntVector(co));
+        MatrizOD busOD = new MatrizOD("matriz.csv");
+        addViajeBus(busOD.getNodosViajeDisponible());
+
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                // Código a ejecutar cada segundo
+                Simulation.step();
+            }
+        }, 0, 1000);
+
+    }
+
+    public static SumoMain getInstance() {
+        if (instance == null) {
+            instance = new SumoMain();
         }
         return instance;
     }
 
-    protected void setup() {
-        //Iniciar el simulador SUMO y cargar la configuración del mapa
-        instance=this;
-        System.loadLibrary("libtracijni");
-        Simulation.start(new StringVector(new String[]{"sumo-gui", "-c", "mapa2Way.sumocfg"}));
-        int[] co=new int[2];
-        co[0]=libtraci.getVAR_ARRIVED_VEHICLES_IDS();
-        co[1]=libtraci.getVAR_DEPARTED_VEHICLES_IDS();
-        Simulation.subscribe(new IntVector(co));
-        //Simulation.step();
-        //Registro del lenguaje de contenido y la ontología utilizada para comunicarse con el AMS
-        getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL);
-        getContentManager().registerOntology(JADEManagementOntology.getInstance());
-        
-        //Inicialización de los viajes de bus
-        //BusManager b = BusManager.getInstance(this);
-        MatrizOD busOD = new MatrizOD("matriz.csv");
-        addViaje(busOD.getNodosViajeDisponible());
-        
-        //Se utiliza un Ticketbehaviour para hace que la simulación avance cada segundo
-        /*TickerBehaviour tarea=new TickerBehaviour(this, 1000) {
-            @Override
-            protected void onTick() {
-                //System.out.println(Vehicle.getIDCount());
-                Simulation.step();
-            }
-        };
-        addBehaviour(tbf.wrap(tarea));*/
-        addBehaviour(new TickerBehaviour(this, 1000) {
-            @Override
-            protected void onTick() {
-                //System.out.println(Vehicle.getIDCount());
-                Simulation.step();
-                /*for(TraCIResult i : Vehicle.getSubscriptionResults("Bus_J1_J2_0").values()){
-                    System.out.println(i.getString());
-                }*/
-                
-            }
-        });
-    }
-
-    public void addViaje(ArrayList<Nodo> nodos) {//Genera los viajes de bus y los anexa a los agentes
-        int cont = 0;
+    private void addViajeBus(ArrayList<Nodo> nodos) {//Genera los viajes de bus y los anexa a los agentes
         for (Nodo i : nodos) {
             for (Nodo j : i.getViajesBus().keySet()) {
-                String ruta = i.getID() + "_" + j.getID();
-                String auto = "Bus" +"_"+ ruta+"_0";
-                Route.add(i.getID() + "_" + j.getID(), Simulation.findRoute(i.getEnlacesOut()[0], j.getEnlacesIn()[0]).getEdges());
-                Vehicle.add(auto, ruta, "Bus");
-                //Vehicle.setParameter(auto, "capacidad", "95");
-                //Vehicle.setStop(auto, j.getEnlacesIn()[0], Lane.getLength(j.getEnlacesIn()[0] + "_0"));
-
-                CreateAgent ca = new CreateAgent();
-                ca.setAgentName(auto);
-                ca.setClassName("main.BusAgent");
-                ca.setContainer(new ContainerID("Main-Container", null));
-                ca.addArguments(i);
-                ca.addArguments(j);
-                ca.addArguments("95");
-                Action actExpr = new Action(getAMS(), ca);
-                ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
-                request.addReceiver(getAMS());
-                request.setOntology(JADEManagementOntology.getInstance().getName());
-                request.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
-                request.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
-                try {
-                    getContentManager().fillContent(request, actExpr);
-                    addBehaviour(new AchieveREInitiator(this, request) {
-                        protected void handleInform(ACLMessage inform) {
-                            System.out.println("Agent successfully created");
-                            
-                        }
-                        protected void handleFailure(ACLMessage failure) {
-                            System.out.println("Error creating agent.");
-                        }
-                    });
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                cont++;
+                /*Asignación de ruta y caracteristicas al Bus*/
+                addViajeBus(i, j);
             }
         }
-
     }
-    public void addBus(Nodo i, Nodo j,int a){ 
-        String ruta = i.getID() + "_" + j.getID();
-        String id="Bus_"+ruta+"_"+a;
-        if(Route.getIDList().contains(ruta)) ruta=ruta+"_"+id.hashCode();
-        Route.add(ruta, Simulation.findRoute(i.getEnlacesOut()[0], j.getEnlacesIn()[0]).getEdges());
-        Vehicle.add(id, ruta, "Bus");
-        Vehicle.setParameter(id, "capacidad", "95");
-        CreateAgent ca = new CreateAgent();
-        ca.setAgentName(id);
-        ca.setClassName("main.BusAgent");
-        ca.setContainer(new ContainerID("Main-Container", null));
-        ca.addArguments(i);
-        ca.addArguments(j);
-        ca.addArguments(Integer.getInteger("95"));
-        Action actExpr = new Action(getAMS(), ca);
-        ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
-        request.addReceiver(getAMS());
-        request.setOntology(JADEManagementOntology.getInstance().getName());
-        request.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
-        request.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
-        try {
-            getContentManager().fillContent(request, actExpr);
-            addBehaviour(new AchieveREInitiator(this, request) {
-                protected void handleInform(ACLMessage inform) {
-                    System.out.println("Agent successfully created");
-                }
 
-                protected void handleFailure(ACLMessage failure) {
-                    System.out.println("Error creating agent.");
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
+    public void addViajeBus(Nodo origen, Nodo destino) {
+        int salt = java.time.LocalDateTime.now().hashCode();
+        String ruta = origen.getID() + "_" + destino.getID() + "_" + salt;
+        String id = "Bus_" + ruta;
+        addSimulacionVehiculo(id, ruta, origen.getEnlacesOut()[0], destino.getEnlacesIn()[0], "Bus", "95");//Agrega el vehiculo a la simulación
+        addAgenteVehiculo(id, "main.BusAgent", origen, destino, 95);//anexa el agente al vehiculo
+     }
+
+    private void addAgenteVehiculo(String idAgente, String classAgent, Nodo origen, Nodo destino, int capacidad) {
+        jade.core.Runtime rt = jade.core.Runtime.instance();
+        Profile p = new ProfileImpl();
+        p.setParameter(Profile.MAIN_HOST, "localhost");
+        p.setParameter(Profile.MAIN_PORT, "1099");
+        p.setParameter(Profile.CONTAINER_NAME, "Main-Container");
+        ContainerController cc = rt.createAgentContainer(p);
+        if (cc != null) {
+            try {
+                AgentController ac = cc.createNewAgent(idAgente,classAgent, new Object[]{origen,destino,capacidad+""});
+                ac.start();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+    }
 
+    private void addSimulacionVehiculo(String idVehiculo,String idRuta,String idOrigen,String idDestino,String tipo, String capacidad){ 
+        Route.add(idRuta, Simulation.findRoute(idOrigen, idDestino).getEdges());
+        Vehicle.add(idVehiculo, idRuta, tipo);
+        Vehicle.setParameter(idVehiculo, "capacidad", capacidad);
+        Vehicle.subscribeContext(idVehiculo,0xaa, 100,new IntVector(new int[]{0x7a,0x5a}));
+        //https://sumo.dlr.de/docs/TraCI/Object_Context_Subscription.html
+        //https://sumo.dlr.de/docs/TraCI/Simulation_Value_Retrieval.html
+        
     }
     
-
-    /*
-    public static void main(String[] args) {
-        System.loadLibrary("libtracijni");
-        Simulation.start(new StringVector(new String[] {"sumo-gui", "-c", "mapa2Way.sumocfg"}));
-        Simulation.step();
-        BusManager b=BusManager.getInstance();
-        while(true){
-            Simulation.step();
-        }
-    }*/
 }

@@ -2,14 +2,16 @@
 package main;
 
 import jade.core.Agent;
-import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.ThreadedBehaviourFactory;
 import jade.core.behaviours.TickerBehaviour;
-import java.util.Map;
-import java.util.Vector;
+import jade.wrapper.StaleProxyException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.eclipse.sumo.libtraci.Route;
 import org.eclipse.sumo.libtraci.Simulation;
 import org.eclipse.sumo.libtraci.StringVector;
 import org.eclipse.sumo.libtraci.TraCIResults;
+import org.eclipse.sumo.libtraci.Vehicle;
 import org.eclipse.sumo.libtraci.libtraci;
 
 
@@ -25,8 +27,7 @@ public class BusAgent extends Agent{
         origen=(Nodo)args[0];
         destino=(Nodo)args[1];
         capacidad=Integer.parseInt((String) args[2]);
-        
-        
+
         TickerBehaviour b=new TickerBehaviour(this, 1000) {
             @Override
             protected void onTick() {
@@ -39,23 +40,24 @@ public class BusAgent extends Agent{
                     origen.setViajesBus(destino, val);
                     doDelete();
                 } 
+                else{
+                    int routeIndex=Vehicle.getRouteIndex(id);
+                    if(routeIndex>=0) System.out.println(Route.getEdges(Vehicle.getRouteID(id)).get(routeIndex));
+                }
                     
             }
             
         };
-        /*addBehaviour(tbf.wrap(new CyclicBehaviour(this) {
-            @Override
-            public void action() {
-                for(TraCIResult i : Simulation.getSubscriptionResults().values()){
-                    System.out.println("Agente "+id+": "+i.getString());
-                }
-            }
-        }));*/
         addBehaviour(b);
     }
 
     protected void takeDown() {
-        //System.out.println(Vehicle.);
+        try {
+            //System.out.println(Vehicle.);
+            getContainerController().kill();
+        } catch (StaleProxyException ex) {
+            Logger.getLogger(BusAgent.class.getName()).log(Level.SEVERE, null, ex);
+        }
        
     }
     

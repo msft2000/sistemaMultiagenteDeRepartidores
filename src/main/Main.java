@@ -1,16 +1,9 @@
 
 package main;
 
-//import org.eclipse.sumo.libtraci.*;
-
-import Matrices.MatrizMaster;
-import Matrices.MatrizOD;
-
-
 public class Main {
    public static void main(String[] args) {
-       MatrizMaster mat = new MatrizMaster("matriz.csv", "matrizRepartidores.csv");
-       mat.getEntregas();
+       SumoMain.getInstance();
    }
         /*
         //MatrizOD mat=new MatrizOD("matriz.csv");
