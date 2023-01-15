@@ -3,11 +3,12 @@ package main;
 import Python.PythonScripts;
 import java.util.ArrayList;
 import java.util.HashMap;
+import main.Nodo;
 
 public class Repartidor {
 
     private String id;
-    private HashMap<String, ArrayList<String>> entregasPendientes;
+    private HashMap<Nodo, ArrayList<Nodo>> entregasPendientes;
 
     public Repartidor(String id) {
         this.id = id;
@@ -18,20 +19,24 @@ public class Repartidor {
         return id;
     }
 
-    public void addEntregasPendientes(String origen, String destino) {
-        if (entregasPendientes.containsKey(origen)) { 
-            ArrayList<String> auxEntregas = (ArrayList<String>) entregasPendientes.get(origen).clone();
+    public void addEntregasPendientes(Nodo origen, Nodo destino) {
+        if (entregasPendientes.containsKey(origen)) {
+            ArrayList<Nodo> auxEntregas = (ArrayList<Nodo>) entregasPendientes.get(origen).clone();
             auxEntregas.add(destino);
             entregasPendientes.put(origen, auxEntregas);
         } else {
-            ArrayList<String> auxEntregas = new ArrayList<>();
+            ArrayList<Nodo> auxEntregas = new ArrayList<>();
             auxEntregas.add(destino);
             entregasPendientes.put(origen, auxEntregas);
         }
     }
 
     public void getEntregasPendientes() {
-        entregasPendientes.forEach((origen,destinos) -> System.out.println("Origen: " + origen + ": destinos: " + destinos));
+        entregasPendientes.forEach((origen, destinos) -> {
+            System.out.print("Origen: " + origen + ": destinos: ");
+            destinos.forEach(des -> System.out.print(" " + des + " "));
+            System.out.println("");
+        });
     }
 
     @Override
