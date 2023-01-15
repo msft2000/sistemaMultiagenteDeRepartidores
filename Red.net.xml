@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2023-01-11 23:55:42 by Eclipse SUMO netedit Version 1.14.1
+<!-- generated on 2023-01-13 23:56:22 by Eclipse SUMO netedit Version 1.14.1
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
 
     <input>
-        <sumo-net-file value="C:\Users\RenatoPC\Documents\NetBeansProjects\mavenproject1\Red.net.xml"/>
+        <sumo-net-file value="C:\Users\RenatoPC\Desktop\Drive\7moCiclo\Multiagentes\Trabajo%20Final\Codigo%20Github\sistemaMultiagenteDeRepartidores\Red.net.xml"/>
     </input>
 
     <output>
-        <output-file value="C:\Users\RenatoPC\Documents\NetBeansProjects\mavenproject1\Red.net.xml"/>
+        <output-file value="C:\Users\RenatoPC\Desktop\Drive\7moCiclo\Multiagentes\Trabajo%20Final\Codigo%20Github\sistemaMultiagenteDeRepartidores\Red.net.xml"/>
     </output>
 
     <processing>
@@ -642,7 +642,7 @@
     <junction id=":J6_13_0" type="internal" x="-17.16" y="80.04" incLanes=":J6_8_0 -E27_0" intLanes=":J6_0_0 :J6_1_0 :J6_4_0 :J6_5_0 :J6_10_0 :J6_11_0"/>
     <junction id=":J8_6_0" type="internal" x="22.49" y="62.89" incLanes=":J8_5_0 E32_0" intLanes=":J8_1_0 :J8_2_0 :J8_3_0"/>
 
-    <connection from="-E20" to="E20" fromLane="0" toLane="0" via=":J1_0_0" dir="t" state="M"/>
+    <connection from="-E20" to="E20" fromLane="0" toLane="0" uncontrolled="1" via=":J1_0_0" dir="t" state="M"/>
     <connection from="-E21" to="-E20" fromLane="0" toLane="0" via=":J2_0_0" dir="r" state="M"/>
     <connection from="-E21" to="E25" fromLane="0" toLane="0" via=":J2_1_0" dir="s" state="M"/>
     <connection from="-E21" to="E23" fromLane="0" toLane="0" via=":J2_2_0" dir="l" state="m"/>

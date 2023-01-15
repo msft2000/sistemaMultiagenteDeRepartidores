@@ -9,8 +9,9 @@ import Matrices.MatrizREP;
 
 public class Main {
     public static void main(String[] args) {
-        MatrizOD mat=new MatrizOD("matriz.csv");
-        System.out.println(mat.getNodo("1").getEnlacesOut()[0]);
+        //MatrizOD mat=new MatrizOD("matriz.csv");
+        //System.out.println(mat.getNodo("1").getEnlacesOut()[0]);
+        System.out.println(""+Integer.parseInt(""));
         MatrizREP matRepartidores=new MatrizREP("matrizRepartidores.csv");
         matRepartidores.getEntregas();
         /*
