@@ -16,22 +16,23 @@ import org.eclipse.sumo.libtraci.*;
 
 public class SumoMain extends Agent {
     //private ThreadedBehaviourFactory tbf = new ThreadedBehaviourFactory();
-    /*private static SumoMain instance;
+    private static SumoMain instance;
      
     public static SumoMain getInstance(){
         if(instance==null){
             instance=new SumoMain();
         }
         return instance;
-    }*/
+    }
 
     protected void setup() {
         //Iniciar el simulador SUMO y cargar la configuración del mapa
-        //instance=this;
+        instance=this;
         System.loadLibrary("libtracijni");
         Simulation.start(new StringVector(new String[]{"sumo-gui", "-c", "mapa2Way.sumocfg"}));
-        int[] co=new int[1];
+        int[] co=new int[2];
         co[0]=libtraci.getVAR_ARRIVED_VEHICLES_IDS();
+        co[1]=libtraci.getVAR_DEPARTED_VEHICLES_IDS();
         Simulation.subscribe(new IntVector(co));
         //Simulation.step();
         //Registro del lenguaje de contenido y la ontología utilizada para comunicarse con el AMS
@@ -112,7 +113,8 @@ public class SumoMain extends Agent {
     public void addBus(Nodo i, Nodo j,int a){ 
         String ruta = i.getID() + "_" + j.getID();
         String id="Bus_"+ruta+"_"+a;
-        Route.add(i.getID() + "_" + j.getID(), Simulation.findRoute(i.getEnlacesOut()[0], j.getEnlacesIn()[0]).getEdges());
+        if(Route.getIDList().contains(ruta)) ruta=ruta+"_"+id.hashCode();
+        Route.add(ruta, Simulation.findRoute(i.getEnlacesOut()[0], j.getEnlacesIn()[0]).getEdges());
         Vehicle.add(id, ruta, "Bus");
         Vehicle.setParameter(id, "capacidad", "95");
         CreateAgent ca = new CreateAgent();
