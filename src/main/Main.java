@@ -4,16 +4,13 @@ package main;
 //import org.eclipse.sumo.libtraci.*;
 
 import Matrices.MatrizOD;
-import Matrices.MatrizREP;
 
 
 public class Main {
-    public static void main(String[] args) {
+    /*public static void main(String[] args) {
         //MatrizOD mat=new MatrizOD("matriz.csv");
         //System.out.println(mat.getNodo("1").getEnlacesOut()[0]);
         System.out.println(""+Integer.parseInt(""));
-        MatrizREP matRepartidores=new MatrizREP("matrizRepartidores.csv");
-        matRepartidores.getEntregas();
         /*
         Simulation.start(new StringVector(new String[] {"sumo-gui", "-c", "mapa3.sumocfg"}));
         for (int i = 0; i < 2000; i++) {
@@ -62,6 +59,6 @@ public class Main {
         System.out.println(Simulation.getSubscriptionResults().toString());
             
         Simulation.close();*/
-    }
+    //}
     
 }

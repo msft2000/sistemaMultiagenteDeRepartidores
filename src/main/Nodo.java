@@ -2,9 +2,11 @@
 package main;
 
 import Python.PythonScripts;
+import java.io.Serializable;
 import java.util.HashMap;
 
-public class Nodo {
+public class Nodo implements Serializable{
+    private static int cont=0;
     private String id;
     private String[] enlacesIn;
     private String[] enlacesOut;
@@ -28,10 +30,18 @@ public class Nodo {
         return enlacesIn;
     }
     public void setViajesBus(Nodo destino,int value){//Se agrega un viaje al nodo destino y con una cantidad value de pasajeros
-        if(viajesBus.containsKey(destino)){
-            BusManager manager=BusManager.getInstance();
-            //manager.
+        for(Nodo i: viajesBus.keySet()){
+            if(i.getID().equals(destino.getID())){
+                cont=cont+1;
+                System.out.println("Viaje "+id+"_"+destino.getID()+" : Faltan "+value+" Pasajeros para completar la ruta");
+                //SumoMain.getInstance().addBus(this, destino,cont);
+            }
         }
+        /*if(viajesBus.containsKey(destino)){
+            cont=cont+1;
+            System.out.println("Viaje "+id+"_"+destino.getID()+" : Faltan "+value+" Pasajeros para completar la ruta");
+            SumoMain.getInstance().addBus(this, destino,cont);
+        }*/
         viajesBus.put(destino, value);
     }
     
@@ -41,6 +51,14 @@ public class Nodo {
     
     public HashMap<Nodo,Integer> getViajesBus(){
        return viajesBus;
+    }
+    public int getValueViaje(Nodo destino){
+        for(Nodo i: viajesBus.keySet()){
+            if(i.getID().equals(destino.getID())){
+                return viajesBus.get(i);
+            }
+        }
+        return -1;
     }
 
     @Override

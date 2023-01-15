@@ -21,7 +21,7 @@ public final class PythonScripts {
         //              usado para indicar si se quieren los enlaces entrantes o salientes de un nodo
         Process mProcess;         
         try{
-            mProcess = Runtime.getRuntime().exec(new String[]{"python","main.py",idNodo,"Red.net.xml",input_output+""},null,new File("."));
+            mProcess = Runtime.getRuntime().exec(new String[]{"python","main.py",idNodo,"Red2Way.net.xml",input_output+""},null,new File("."));
             InputStream stdout = mProcess.getInputStream();
             BufferedReader reader = new BufferedReader(new InputStreamReader(stdout,StandardCharsets.UTF_8));
             String line;
