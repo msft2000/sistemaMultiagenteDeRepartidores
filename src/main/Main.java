@@ -1,9 +1,16 @@
 
 package main;
 
+import Matrices.MatrizMaster;
+import VIEW.MAIN;
+
 public class Main {
    public static void main(String[] args) {
-       SumoMain.getInstance();
+//       MatrizMaster mat = new MatrizMaster("matriz.csv","matrizRepartidores.csv","matrizVehiculos.csv");
+//       mat.getNodosViajeDisponibleVehiculos();
+       MAIN formulario = new MAIN();
+       formulario.setVisible(true);
+//       SumoMain.getInstance();       
    }
         /*
         //MatrizOD mat=new MatrizOD("matriz.csv");

@@ -8,7 +8,6 @@ import jade.wrapper.ContainerController;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
-import org.apache.commons.codec.binary.Hex;
 import org.eclipse.sumo.libtraci.*;
 
 public class SumoMain {
@@ -20,7 +19,7 @@ public class SumoMain {
         //Iniciar el simulador SUMO y cargar la configuración del mapa
         /*try{java.lang.Runtime.getRuntime().exec(new String[]{"java","jade.Boot","-gui"});}
         catch(Exception e){}*/
-        System.loadLibrary("libtracijni");
+        System.loadLibrary("libtracinji");
         Simulation.start(new StringVector(new String[]{"sumo-gui", "-c", "mapa2Way.sumocfg"}));
         int[] co = new int[2];
         co[0] = libtraci.getVAR_ARRIVED_VEHICLES_IDS();
