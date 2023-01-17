@@ -30,7 +30,7 @@ public class BusAgent extends Agent{
         travelTime=Double.parseDouble((String) args[3]);
         departTime=Double.parseDouble((String) args[4]);
         idEdgeActual=destino.getEnlacesIn()[0];
-        TickerBehaviour b=new TickerBehaviour(this, 200) {
+        TickerBehaviour b=new TickerBehaviour(this, 1000) {
             @Override
             protected void onTick() {
                 TraCIResults Res=Simulation.getSubscriptionResults();

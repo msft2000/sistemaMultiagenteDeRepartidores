@@ -45,7 +45,8 @@ public class SumoMain {
             Inicialización de SUMO y suscribción de variables
          */
         System.loadLibrary("libtracijni");
-        Simulation.start(new StringVector(new String[]{"sumo-gui", "-c", "mapa2Way.sumocfg"}));
+        //Simulation.start(new StringVector(new String[]{"sumo-gui", "-c", "mapa2Way.sumocfg"}),50109);
+        Simulation.start(new StringVector(new String[]{}),50109);
         int[] co = new int[]{libtraci.getVAR_ARRIVED_VEHICLES_IDS(), 0x66};//Se solicita la información referente a los autos que ya han finalizado sus rutas
         Simulation.subscribe(new IntVector(co));
         /*Edge.getIDList().forEach((el)->{
@@ -67,7 +68,7 @@ public class SumoMain {
                 // Código a ejecutar cada segundo
                 Simulation.step();
             }
-        }, 0, 200);
+        }, 0, 1000);
     }
 
     public static SumoMain getInstance() {
@@ -103,8 +104,8 @@ public class SumoMain {
                 e.printStackTrace();
             }
         }
+    
     }
-
     private double addSimulacionVehiculo(String idVehiculo, String idRuta, String idOrigen, String idDestino, String tipo, String capacidad) {
         TraCIStage ruta = Simulation.findRoute(idOrigen, idDestino, tipo, 0, libtraci.getROUTING_MODE_AGGREGATED());
         Route.add(idRuta, ruta.getEdges());

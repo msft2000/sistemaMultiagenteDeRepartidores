@@ -297,7 +297,8 @@ public class MAIN extends javax.swing.JFrame {
         mat.getEntregas();
         mat.getVehiculosEnNodos();
         mat.getBusesConPasajeros();
-        SumoMain.getInstance().iniciar(csvBuses,csvRepartidores,csvVehiculos,Integer.parseInt(txtVelocidadVehiculos.getText()),Integer.parseInt(txtVelocidadBuses.getText()),Integer.parseInt(txtCapacidadBuses.getText()),Integer.parseInt(txtVelocidadRepartidoresBicicleta.getText()),Integer.parseInt(txtVelocidadRepartidoresMoto.getText()));
+//        SumoMain.getInstance().iniciar(csvBuses,csvRepartidores,csvVehiculos,Integer.parseInt(txtVelocidadVehiculos.getText()),Integer.parseInt(txtVelocidadBuses.getText()),Integer.parseInt(txtCapacidadBuses.getText()),Integer.parseInt(txtVelocidadRepartidoresBicicleta.getText()),Integer.parseInt(txtVelocidadRepartidoresMoto.getText()));
+        SumoMain.getInstance().iniciar("matriz.csv","matrizRepartidores.csv","matrizVehiculos.csv",Integer.parseInt(txtVelocidadVehiculos.getText()),Integer.parseInt(txtVelocidadBuses.getText()),Integer.parseInt(txtCapacidadBuses.getText()),Integer.parseInt(txtVelocidadRepartidoresBicicleta.getText()),Integer.parseInt(txtVelocidadRepartidoresMoto.getText()));
         
         
     }//GEN-LAST:event_enviarActionPerformed

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <?xml version="1.0" encoding="UTF-8"?>
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
@@ -6,26 +5,9 @@
         <group>
             <file>file:/Users/boto/NetBeansProjects/JavaApplication5/src/main/Nodo.java</file>
             <file>file:/Users/boto/NetBeansProjects/JavaApplication5/src/VIEW/MAIN.java</file>
-            <file>file:/Users/boto/NetBeansProjects/JavaApplication5/src/VIEW/window.java</file>
+            <file>file:/Users/boto/NetBeansProjects/JavaApplication5/src/main/SumoMain.java</file>
             <file>file:/Users/boto/NetBeansProjects/JavaApplication5/src/Matrices/MatrizMaster.java</file>
             <file>file:/Users/boto/NetBeansProjects/JavaApplication5/src/main/Main.java</file>
         </group>
     </open-files>
 </project-private>
-=======
-<?xml version="1.0" encoding="UTF-8"?>
-<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
-    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
-    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group>
-            <file>file:/C:/Users/RenatoPC/Desktop/Codigo/src/Matrices/MatrizOD.java</file>
-            <file>file:/C:/Users/RenatoPC/Desktop/Codigo/src/Matrices/MatrizMaster.java</file>
-            <file>file:/C:/Users/RenatoPC/Desktop/Codigo/src/main/Nodo.java</file>
-            <file>file:/C:/Users/RenatoPC/Desktop/Codigo/src/main/BusAgent.java</file>
-            <file>file:/C:/Users/RenatoPC/Desktop/Codigo/src/main/SumoMain.java</file>
-            <file>file:/C:/Users/RenatoPC/Desktop/Codigo/src/Python/PythonScripts.java</file>
-            <file>file:/C:/Users/RenatoPC/Desktop/Codigo/src/main/Main.java</file>
-        </group>
-    </open-files>
-</project-private>
->>>>>>> 1f46f43632da8478e2797ce025eaa34e74e4d108
