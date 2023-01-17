@@ -1,6 +1,8 @@
 package main;
 
 import Matrices.MatrizOD;
+import VIEW.MAIN;
+import jade.Boot;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.wrapper.AgentController;
@@ -14,20 +16,50 @@ public class SumoMain {
 
     //private ThreadedBehaviourFactory tbf = new ThreadedBehaviourFactory();
     private static SumoMain instance;
+    private jade.core.Runtime jadeRunTime;
+    private ContainerController repartidores, autos, buses;
+    private MAIN guiMain;
 
     public SumoMain() {
-        //Iniciar el simulador SUMO y cargar la configuración del mapa
-        /*try{java.lang.Runtime.getRuntime().exec(new String[]{"java","jade.Boot","-gui"});}
-        catch(Exception e){}*/
-        System.loadLibrary("libtracinji");
+        guiMain = new MAIN();
+        guiMain.setVisible(true);
+    }
+
+    public void iniciar(String csvBuses,String csvRepartidores, String csvVehiculos, int velocidadVehiculos, int velocidadBuses, int capacidadBuses, int velocidadRepartidoresBicicleta, int velocidadRepartidoresMoto) {
+        Boot.main(new String[]{"-gui"});//iniciación de jade.Boot
+        /*
+            Instancias para la inicialización de jade y sus agentes
+         */
+        jadeRunTime = jade.core.Runtime.instance();
+        Profile p = new ProfileImpl("localhost", 1099, "MAS-Repartos");//Perfil de los containercontroller
+        //Container y perfil de repartidores
+        p.setParameter(Profile.CONTAINER_NAME, "Repartidores-Container");
+        repartidores = jadeRunTime.createAgentContainer(p);
+        //Container y perfil de autos
+        p.setParameter(Profile.CONTAINER_NAME, "Autos-Container");
+        autos = jadeRunTime.createAgentContainer(p);
+        //Container y perfil de buses
+        p.setParameter(Profile.CONTAINER_NAME, "Buses-Container");
+        buses = jadeRunTime.createAgentContainer(p);
+        /*
+            Inicialización de SUMO y suscribción de variables
+         */
+        System.loadLibrary("libtracijni");
         Simulation.start(new StringVector(new String[]{"sumo-gui", "-c", "mapa2Way.sumocfg"}));
-        int[] co = new int[2];
-        co[0] = libtraci.getVAR_ARRIVED_VEHICLES_IDS();
-        co[1] = libtraci.getVAR_DEPARTED_VEHICLES_IDS();
+        int[] co = new int[]{libtraci.getVAR_ARRIVED_VEHICLES_IDS(), 0x66};//Se solicita la información referente a los autos que ya han finalizado sus rutas
         Simulation.subscribe(new IntVector(co));
-        MatrizOD busOD = new MatrizOD("matriz.csv");
+        /*Edge.getIDList().forEach((el)->{
+            if(((String)el).contains("E")) Edge.subscribe((String) el, new IntVector(new int[]{0x5a})); 
+        });*/
+ /*
+            Carga de las matrices de datos de viajes
+         */
+        MatrizOD busOD = new MatrizOD(csvBuses);
         addViajeBus(busOD.getNodosViajeDisponible());
 
+        /*
+            Thread encargado de avanzar la simulación cada 1 segundo
+         */
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -35,8 +67,7 @@ public class SumoMain {
                 // Código a ejecutar cada segundo
                 Simulation.step();
             }
-        }, 0, 1000);
-
+        }, 0, 200);
     }
 
     public static SumoMain getInstance() {
@@ -44,9 +75,9 @@ public class SumoMain {
             instance = new SumoMain();
         }
         return instance;
-    }
+    }//Singleton
 
-    private void addViajeBus(ArrayList<Nodo> nodos) {//Genera los viajes de bus y los anexa a los agentes
+    private void addViajeBus(ArrayList<Nodo> nodos) {//Lee los viajes de bus y los anexa a los agentes
         for (Nodo i : nodos) {
             for (Nodo j : i.getViajesBus().keySet()) {
                 /*Asignación de ruta y caracteristicas al Bus*/
@@ -55,24 +86,18 @@ public class SumoMain {
         }
     }
 
-    public void addViajeBus(Nodo origen, Nodo destino) {
-        int salt = java.time.LocalDateTime.now().hashCode();
-        String ruta = origen.getID() + "_" + destino.getID() + "_" + salt;
-        String id = "Bus_" + ruta;
-        addSimulacionVehiculo(id, ruta, origen.getEnlacesOut()[0], destino.getEnlacesIn()[0], "Bus", "95");//Agrega el vehiculo a la simulación
-        addAgenteVehiculo(id, "main.BusAgent", origen, destino, 95);//anexa el agente al vehiculo
-     }
+    public void addViajeBus(Nodo origen, Nodo destino) {//Agrega un bus a la simulación
+        int salt = java.time.LocalDateTime.now().hashCode();//Código de bus - hash de la fecha y hora actuales
+        String ruta = origen.getID() + "_" + destino.getID() + "_" + salt;//Código de ruta
+        String id = "Bus_" + ruta;//Código de bus
+        double travelTime = addSimulacionVehiculo(id, ruta, origen.getEnlacesOut()[0], destino.getEnlacesIn()[0], "Bus", "95");//Agrega el vehiculo a la simulación
+        addAgenteVehiculo(buses, id, "main.BusAgent", origen, destino, 95, travelTime);//anexa el agente al vehiculo
+    }
 
-    private void addAgenteVehiculo(String idAgente, String classAgent, Nodo origen, Nodo destino, int capacidad) {
-        jade.core.Runtime rt = jade.core.Runtime.instance();
-        Profile p = new ProfileImpl();
-        p.setParameter(Profile.MAIN_HOST, "localhost");
-        p.setParameter(Profile.MAIN_PORT, "1099");
-        p.setParameter(Profile.CONTAINER_NAME, "Main-Container");
-        ContainerController cc = rt.createAgentContainer(p);
-        if (cc != null) {
+    private void addAgenteVehiculo(ContainerController container, String idAgente, String classAgent, Nodo origen, Nodo destino, int capacidad, double travelTime) {
+        if (container != null) {
             try {
-                AgentController ac = cc.createNewAgent(idAgente,classAgent, new Object[]{origen,destino,capacidad+""});
+                AgentController ac = container.createNewAgent(idAgente, classAgent, new Object[]{origen, destino, capacidad + "", travelTime + "", Simulation.getSubscriptionResults().get(0x66).getString()});
                 ac.start();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -80,14 +105,15 @@ public class SumoMain {
         }
     }
 
-    private void addSimulacionVehiculo(String idVehiculo,String idRuta,String idOrigen,String idDestino,String tipo, String capacidad){ 
-        Route.add(idRuta, Simulation.findRoute(idOrigen, idDestino).getEdges());
+    private double addSimulacionVehiculo(String idVehiculo, String idRuta, String idOrigen, String idDestino, String tipo, String capacidad) {
+        TraCIStage ruta = Simulation.findRoute(idOrigen, idDestino, tipo, 0, libtraci.getROUTING_MODE_AGGREGATED());
+        Route.add(idRuta, ruta.getEdges());
         Vehicle.add(idVehiculo, idRuta, tipo);
         Vehicle.setParameter(idVehiculo, "capacidad", capacidad);
-        Vehicle.subscribeContext(idVehiculo,0xaa, 100,new IntVector(new int[]{0x7a,0x5a}));
-        //https://sumo.dlr.de/docs/TraCI/Object_Context_Subscription.html
-        //https://sumo.dlr.de/docs/TraCI/Simulation_Value_Retrieval.html
-        
+        //Vehicle.setParameter(idVehiculo, "departTime", Simulation.getSubscriptionResults().get(0x66).getString()+"");
+        Vehicle.subscribe(idVehiculo, new IntVector(new int[]{0x50, 0x53}));
+        return ruta.getTravelTime();
+        //Vehicle.subscribeContext(idVehiculo,0xaa, 100,new IntVector(new int[]{0x8c,0x50,0x53}));
     }
-    
+
 }

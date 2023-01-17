@@ -15,6 +15,7 @@ import java.io.PrintStream;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import main.SumoMain;
 
 /**
  *
@@ -51,7 +52,7 @@ public class MAIN extends javax.swing.JFrame {
         jLabel10 = new javax.swing.JLabel();
         jLabel11 = new javax.swing.JLabel();
         txtCapacidadBuses = new javax.swing.JTextField();
-        txtVelocidadRepartidores = new javax.swing.JTextField();
+        txtVelocidadRepartidoresBicicleta = new javax.swing.JTextField();
         txtVelocidadBuses = new javax.swing.JTextField();
         txtVelocidadVehiculos = new javax.swing.JTextField();
         csvRepartidoresSeleccionar = new javax.swing.JButton();
@@ -59,6 +60,8 @@ public class MAIN extends javax.swing.JFrame {
         csvBusesSeleccionar = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         txtSalida = new javax.swing.JTextArea();
+        txtVelocidadRepartidoresMoto = new javax.swing.JTextField();
+        jLabel8 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -77,7 +80,7 @@ public class MAIN extends javax.swing.JFrame {
         jLabel6.setFont(new java.awt.Font("Helvetica Neue", 0, 14)); // NOI18N
         jLabel6.setText("Repartidores");
 
-        jLabel7.setText("Velocidad:");
+        jLabel7.setText("Velocidad Bicicleta:");
 
         enviar.setText("Enviar");
         enviar.addActionListener(new java.awt.event.ActionListener() {
@@ -101,9 +104,9 @@ public class MAIN extends javax.swing.JFrame {
             }
         });
 
-        txtVelocidadRepartidores.addActionListener(new java.awt.event.ActionListener() {
+        txtVelocidadRepartidoresBicicleta.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtVelocidadRepartidoresActionPerformed(evt);
+                txtVelocidadRepartidoresBicicletaActionPerformed(evt);
             }
         });
 
@@ -144,13 +147,21 @@ public class MAIN extends javax.swing.JFrame {
         txtSalida.setRows(5);
         jScrollPane1.setViewportView(txtSalida);
 
+        txtVelocidadRepartidoresMoto.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtVelocidadRepartidoresMotoActionPerformed(evt);
+            }
+        });
+
+        jLabel8.setText("Velocidad Moto:");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(7, 7, 7)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel9)
                         .addGap(7, 7, 7)
@@ -189,14 +200,19 @@ public class MAIN extends javax.swing.JFrame {
                         .addGap(3, 3, 3)
                         .addComponent(jLabel6))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(33, 33, 33)
-                        .addComponent(jLabel7)
-                        .addGap(8, 8, 8)
-                        .addComponent(txtVelocidadRepartidores, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
                         .addGap(133, 133, 133)
-                        .addComponent(enviar)))
-                .addGap(71, 71, 71)
+                        .addComponent(enviar))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(35, 35, 35)
+                        .addComponent(jLabel7)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtVelocidadRepartidoresBicicleta, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(35, 35, 35)
+                        .addComponent(jLabel8)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(txtVelocidadRepartidoresMoto, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(65, 65, 65)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 534, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(57, 57, 57))
         );
@@ -240,10 +256,14 @@ public class MAIN extends javax.swing.JFrame {
                 .addGap(3, 3, 3)
                 .addComponent(jLabel6)
                 .addGap(2, 2, 2)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel7)
-                    .addComponent(txtVelocidadRepartidores, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(57, 57, 57)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtVelocidadRepartidoresBicicleta, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel7))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtVelocidadRepartidoresMoto, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel8))
+                .addGap(28, 28, 28)
                 .addComponent(enviar))
             .addGroup(layout.createSequentialGroup()
                 .addGap(20, 20, 20)
@@ -271,13 +291,13 @@ public class MAIN extends javax.swing.JFrame {
         consoleThread.start();
         // Set new stream for System.out
         System.setOut(new PrintStream(rawout, true));
-//        MatrizMaster mat = new MatrizMaster("matriz.csv","matrizRepartidores.csv","matrizVehiculos.csv");
-        MatrizMaster mat = new MatrizMaster(csvBuses,csvRepartidores,csvVehiculos);
+        MatrizMaster mat = new MatrizMaster("matriz.csv","matrizRepartidores.csv","matrizVehiculos.csv");
+//        MatrizMaster mat = new MatrizMaster(csvBuses,csvRepartidores,csvVehiculos);
         System.out.println("csvBuses: " + csvBuses + " | csvRepartidores:" + csvRepartidores + "| csvVehiculos" + csvVehiculos);
         mat.getEntregas();
         mat.getVehiculosEnNodos();
         mat.getBusesConPasajeros();
-        
+        SumoMain.getInstance().iniciar(csvBuses,csvRepartidores,csvVehiculos,Integer.parseInt(txtVelocidadVehiculos.getText()),Integer.parseInt(txtVelocidadBuses.getText()),Integer.parseInt(txtCapacidadBuses.getText()),Integer.parseInt(txtVelocidadRepartidoresBicicleta.getText()),Integer.parseInt(txtVelocidadRepartidoresMoto.getText()));
         
         
     }//GEN-LAST:event_enviarActionPerformed
@@ -286,9 +306,9 @@ public class MAIN extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_txtCapacidadBusesActionPerformed
 
-    private void txtVelocidadRepartidoresActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtVelocidadRepartidoresActionPerformed
+    private void txtVelocidadRepartidoresBicicletaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtVelocidadRepartidoresBicicletaActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtVelocidadRepartidoresActionPerformed
+    }//GEN-LAST:event_txtVelocidadRepartidoresBicicletaActionPerformed
 
     private void txtVelocidadBusesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtVelocidadBusesActionPerformed
         // TODO add your handling code here:
@@ -339,41 +359,45 @@ public class MAIN extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_csvVehiculosSeleccionarActionPerformed
 
+    private void txtVelocidadRepartidoresMotoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtVelocidadRepartidoresMotoActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtVelocidadRepartidoresMotoActionPerformed
+
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(MAIN.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(MAIN.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(MAIN.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(MAIN.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
-        
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new MAIN().setVisible(true);
-            }
-        });
-    }
+//    public static void main(String args[]) {
+//        /* Set the Nimbus look and feel */
+//        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+//        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+//         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+//         */
+//        try {
+//            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+//                if ("Nimbus".equals(info.getName())) {
+//                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+//                    break;
+//                }
+//            }
+//        } catch (ClassNotFoundException ex) {
+//            java.util.logging.Logger.getLogger(MAIN.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (InstantiationException ex) {
+//            java.util.logging.Logger.getLogger(MAIN.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (IllegalAccessException ex) {
+//            java.util.logging.Logger.getLogger(MAIN.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+//            java.util.logging.Logger.getLogger(MAIN.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        }
+//        //</editor-fold>
+//
+//        /* Create and display the form */
+//        
+//        java.awt.EventQueue.invokeLater(new Runnable() {
+//            public void run() {
+//                new MAIN().setVisible(true);
+//            }
+//        });
+//    }
     private class SynchronizedByteArrayOutputStreamWrapper
             extends OutputStream {
         // The console will be synchronized through a monitor.
@@ -417,12 +441,14 @@ public class MAIN extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextField txtCapacidadBuses;
     public javax.swing.JTextArea txtSalida;
     private javax.swing.JTextField txtVelocidadBuses;
-    private javax.swing.JTextField txtVelocidadRepartidores;
+    private javax.swing.JTextField txtVelocidadRepartidoresBicicleta;
+    private javax.swing.JTextField txtVelocidadRepartidoresMoto;
     private javax.swing.JTextField txtVelocidadVehiculos;
     // End of variables declaration//GEN-END:variables
 }
