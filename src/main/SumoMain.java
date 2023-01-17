@@ -37,7 +37,7 @@ public class SumoMain {
         buses = jadeRunTime.createAgentContainer(p);
         /*
             Inicialización de SUMO y suscribción de variables
-        */        
+        */
         System.loadLibrary("libtracijni");
         Simulation.start(new StringVector(new String[]{"sumo-gui", "-c", "mapa2Way.sumocfg"}));
         int[] co = new int[]{libtraci.getVAR_ARRIVED_VEHICLES_IDS(),0x66};//Se solicita la información referente a los autos que ya han finalizado sus rutas
@@ -61,7 +61,7 @@ public class SumoMain {
                 // Código a ejecutar cada segundo
                 Simulation.step();
             }
-        }, 0, 200);
+        }, 0, 1000);
 
     }
 
