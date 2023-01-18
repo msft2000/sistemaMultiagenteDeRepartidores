@@ -59,7 +59,7 @@ public class Nodo implements Serializable{
             if(i.getID().equals(destino.getID())){
                 if(value!=0) {
                     //int cont=viajesBus.get(i)[1]+1;
-                    System.out.println("Viaje "+id+"_"+destino.getID()+" : Faltan "+value+" Pasajeros para completar la ruta");
+                    System.out.println("Viaje "+id+"_"+destino.getID()+" : Faltan "+value+" Viajes restantes para completar la ruta");
                     //viajesBus.put(destino, new Integer[]{value,cont});
                     viajesVehiculos.put(destino, value);
                     return;

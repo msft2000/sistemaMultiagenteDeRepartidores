@@ -4,7 +4,6 @@ package main;
 import jade.core.Agent;
 import jade.core.behaviours.ThreadedBehaviourFactory;
 import jade.core.behaviours.TickerBehaviour;
-import org.eclipse.sumo.libtraci.Route;
 import org.eclipse.sumo.libtraci.Simulation;
 import org.eclipse.sumo.libtraci.StringVector;
 import org.eclipse.sumo.libtraci.TraCIResults;
@@ -29,12 +28,15 @@ public class BusAgent extends Agent{
         capacidad=Integer.parseInt((String) args[2]);
         travelTime=Double.parseDouble((String) args[3]);
         departTime=Double.parseDouble((String) args[4]);
-        idEdgeActual=destino.getEnlacesIn()[0];
-        TickerBehaviour b=new TickerBehaviour(this, 1000) {
+        idEdgeActual=origen.getEnlacesOut()[0];
+        TickerBehaviour b=new TickerBehaviour(this, 1200) {
             @Override
             protected void onTick() {
+                 //0x7a: id arrived vehicless
+                //0x66: current simulation time    
                 TraCIResults Res=Simulation.getSubscriptionResults();
-                StringVector v=new StringVector(Res.get(libtraci.getVAR_ARRIVED_VEHICLES_IDS()).getString().replace('[', ' ').replace(']', ' ').trim().split(","));
+                StringVector v=new StringVector(Res.get(0x7a).getString().replace('[', ' ').replace(']', ' ').trim().split(","));
+
                 if(v.contains(id)){
                     int numPasajerosRestantes=origen.getValueViaje(destino);
                     int val = ((numPasajerosRestantes<=capacidad) ? 0 : numPasajerosRestantes-capacidad);
@@ -42,21 +44,43 @@ public class BusAgent extends Agent{
                     doDelete();
                 } 
                 else{
+                    //0x50: Llega a un enlace nuevo
                     TraCIResults resu=Vehicle.getSubscriptionResults(id);
-                    String idEdgeNuevo=resu.get(0x50).getString();
-                    if(!idEdgeActual.equals(idEdgeNuevo)&& !idEdgeActual.contains("E")){
-                        String idRuta=resu.get(0x53).getString();
-                        double currentTime=Double.parseDouble(Simulation.getSubscriptionResults().get(0x66).getString());
-                        idEdgeActual=idEdgeNuevo;
-                        TraCIStage a=Simulation.findRoute(idEdgeActual, destino.getEnlacesIn()[0]);
-                        double newTravelTime=travelTime-(currentTime-departTime-10);
-                        if(newTravelTime>a.getTravelTime()){
-                            System.out.println("Vehiculo "+id+" reenrutado");
-                            Vehicle.setRoute(id, a.getEdges());
+                    if(resu.containsKey(0x50)){
+                        String idEdgeNuevo=resu.get(0x50).getString();
+                        if(!idEdgeActual.equals(idEdgeNuevo)&& idEdgeNuevo.contains("E")){
+                            idEdgeActual=idEdgeNuevo;
+                            try{
+                                double currentTime=Double.parseDouble(Res.get(0x66).getString());
+                                TraCIStage a=Simulation.findRoute(idEdgeActual, destino.getEnlacesIn()[0],"Bus",0,libtraci.getROUTING_MODE_AGGREGATED());
+                                double newTravelTime=travelTime-(currentTime-departTime-10);
+                                if(newTravelTime>a.getTravelTime()){
+                                    System.out.println("Vehiculo "+id+" reenrutado");
+                                    Vehicle.setRoute(id, a.getEdges());
+                                }
+                            }
+                            catch(Exception e){
+                                System.out.println("Error: "+id+" "+idEdgeActual);
+                                System.err.println(e.getMessage());
+                            }
                         }
                     }
+                        /*
+                        if(!idEdgeActual.equals(idEdgeNuevo)&& !idEdgeActual.contains("E")){
+                            //String idRuta=resu.get(0x53).getString();
+                            double currentTime=Double.parseDouble(Res.get(0x66).getString());
+                            idEdgeActual=idEdgeNuevo;
+                            TraCIStage a=Simulation.findRoute(idEdgeActual, destino.getEnlacesIn()[0]);
+                            double newTravelTime=travelTime-(currentTime-departTime-10);
+                            if(newTravelTime>a.getTravelTime()){
+                                System.out.println("Vehiculo "+id+" reenrutado");
+                                Vehicle.setRoute(id, a.getEdges());
+                            }
+                        } */
+                    //}
+
                     //System.out.printf("%s_%s Tiempo viaje: %s\nidRuta: %s\nidEdgeActual: %s\ntiempoRecorrido: %s\n",origen.getID(),destino.getID(),travelTime+"",idRuta,idEdgeActual,(currentTime-departTime-10)+"");
-                }  
+                } 
             }
             
         };
