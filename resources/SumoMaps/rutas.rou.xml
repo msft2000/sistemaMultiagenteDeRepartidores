@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2023-01-18 11:59:49 by Eclipse SUMO netedit Version 1.14.1
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+    <!-- VTypes -->
+    <vType id="Auto" color="blue"/>
+    <vType id="Bicicleta" vClass="bicycle" color="green"/>
+    <vType id="Bus" vClass="bus" color="red"/>
+    <vType id="Moto" vClass="motorcycle" color="128,0,128"/>
+    <vType id="t_0"/>
+    <vType id="t_1"/>
+    <vType id="t_2"/>
+    <vType id="t_3"/>
+</routes>

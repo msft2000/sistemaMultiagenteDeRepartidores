@@ -1,13 +1,13 @@
 package main;
 
 import Matrices.MatrizMaster;
-import Matrices.MatrizOD;
-import VIEW.MAIN;
+import GUI.SumoMainGui;
 import jade.Boot;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
+import jade.wrapper.StaleProxyException;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -19,15 +19,16 @@ public class SumoMain {
     private static SumoMain instance;
     private jade.core.Runtime jadeRunTime;
     private ContainerController repartidores, autos, buses;
-    private int vAutos,vBuses,cBuses,vBici,vMoto;
-    private MAIN guiMain;
+    private double vAutos,vBuses,vBici,vMoto;
+    private int cBuses;
+    private SumoMainGui guiMain;
 
     public SumoMain() {
-        guiMain = new MAIN();
+        guiMain = new SumoMainGui();
         guiMain.setVisible(true);
     }
 
-    public void iniciar(String csvBuses,String csvRepartidores, String csvAutos, int velocidadVehiculos, int velocidadBuses, int capacidadBuses, int velocidadRepartidoresBicicleta, int velocidadRepartidoresMoto) {
+    public void iniciar(String csvBuses,String csvRepartidores, String csvAutos, double velocidadVehiculos, double velocidadBuses, int capacidadBuses, double velocidadRepartidoresBicicleta, double velocidadRepartidoresMoto) {
         this.vAutos=velocidadVehiculos;
         this.vBuses=velocidadBuses;
         this.cBuses=capacidadBuses;
@@ -56,7 +57,7 @@ public class SumoMain {
             Inicialización de SUMO y suscribción de variables
         */
         System.loadLibrary("libtracijni");
-        Simulation.start(new StringVector(new String[]{"sumo-gui", "-c", "mapa2Way.sumocfg"}));
+        Simulation.start(new StringVector(new String[]{"sumo-gui", "-c", "resources/SumoMaps/mapa2Way2.sumocfg"}));
         int[] co = new int[]{0x7a, 0x66};//Se solicita la información referente a los autos que ya han finalizado sus rutas
         //0x7a: id arrived vehicless
         //0x66: current simulation time
@@ -68,6 +69,7 @@ public class SumoMain {
         //addViajeBus(busOD.getNodosViajeDisponible());
         MatrizMaster matVehiculos=new MatrizMaster(csvRepartidores,csvBuses,csvAutos);
         addViajeBus(matVehiculos.getNodosViajeBusDisponible());
+        addViajeAuto(matVehiculos.getNodosViajeAutosDisponible());
 
         /*
             Thread encargado de avanzar la simulación cada 1 segundo
@@ -111,36 +113,38 @@ public class SumoMain {
         int salt = java.time.LocalDateTime.now().hashCode();//Código de bus - hash de la fecha y hora actuales
         String ruta = origen.getID() + "_" + destino.getID() + "_" + salt;//Código de ruta
         String id = "Bus_" + ruta;//Código de bus
-        double travelTime = addSimulacionVehiculo(id, ruta, origen.getEnlacesOut()[0], destino.getEnlacesIn()[0], "Bus", "95");//Agrega el vehiculo a la simulación
-        addAgenteVehiculo(buses, id, "main.BusAgent", origen, destino, 95, travelTime);//anexa el agente al vehiculo
+        double travelTime = addSimulacionVehiculo(id, ruta, origen.getEnlacesOut()[0], destino.getEnlacesIn()[0], "Bus", cBuses+"",vBuses);//Agrega el vehiculo a la simulación
+        addAgenteVehiculo(buses, id, "main.BusAgent", origen, destino, cBuses+"", travelTime);//anexa el agente al vehiculo
     }
     
     public void addViajeAuto(Nodo origen, Nodo destino) {//Agrega un bus a la simulación
         int salt = java.time.LocalDateTime.now().hashCode();//Código de bus - hash de la fecha y hora actuales
         String ruta = origen.getID() + "_" + destino.getID() + "_" + salt;//Código de ruta
         String id = "Auto_" + ruta;//Código de bus
-        double travelTime = addSimulacionVehiculo(id, ruta, origen.getEnlacesOut()[0], destino.getEnlacesIn()[0], "DEFAULT_VEHTYPE", "95");//Agrega el vehiculo a la simulación
-        addAgenteVehiculo(autos, id, "main.AutoAgent", origen, destino, 95, travelTime);//anexa el agente al vehiculo
+        double travelTime = addSimulacionVehiculo(id, ruta, origen.getEnlacesOut()[0], destino.getEnlacesIn()[0], "Auto", "",vAutos);//Agrega el vehiculo a la simulación
+        addAgenteVehiculo(autos, id, "main.AutoAgent", origen, destino, "", travelTime);//anexa el agente al vehiculo
     }
 
 
-    private void addAgenteVehiculo(ContainerController container, String idAgente, String classAgent, Nodo origen, Nodo destino, int capacidad, double travelTime) {
+    private void addAgenteVehiculo(ContainerController container, String idAgente, String classAgent, Nodo origen, Nodo destino, String capacidad, double travelTime) {
         if (container != null) {
             try {
-                AgentController ac = container.createNewAgent(idAgente, classAgent, new Object[]{origen, destino, capacidad + "", travelTime + "", Simulation.getSubscriptionResults().get(0x66).getString()});
+                AgentController ac;
+                if (!capacidad.equals("")) ac = container.createNewAgent(idAgente, classAgent, new Object[]{origen, destino, capacidad , travelTime + "", Simulation.getSubscriptionResults().get(0x66).getString()});
+                else ac = container.createNewAgent(idAgente, classAgent, new Object[]{origen, destino , travelTime + "", Simulation.getSubscriptionResults().get(0x66).getString()});
                 ac.start();
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (StaleProxyException e) {
+                System.err.println(e.getMessage());
             }
         }
     
     }
-    private double addSimulacionVehiculo(String idVehiculo, String idRuta, String idOrigen, String idDestino, String tipo, String capacidad) {
+    private double addSimulacionVehiculo(String idVehiculo, String idRuta, String idOrigen, String idDestino, String tipo, String capacidad,double velocidadMaxima) {
         TraCIStage ruta = Simulation.findRoute(idOrigen, idDestino, tipo, 0, libtraci.getROUTING_MODE_AGGREGATED());
         Route.add(idRuta, ruta.getEdges());
         Vehicle.add(idVehiculo, idRuta, tipo);
-        Vehicle.setParameter(idVehiculo, "capacidad", capacidad);
-        //Vehicle.setParameter(idVehiculo, "departTime", Simulation.getSubscriptionResults().get(0x66).getString()+"");
+        Vehicle.setMaxSpeed(idVehiculo, velocidadMaxima);//Velocidad máxima del vehiculo
+        if(!"".equals(capacidad)) Vehicle.setParameter(idVehiculo, "capacidad", capacidad);
         Vehicle.subscribe(idVehiculo, new IntVector(new int[]{0x50, 0x53}));
         return ruta.getTravelTime();
         //Vehicle.subscribeContext(idVehiculo,0xaa, 100,new IntVector(new int[]{0x8c,0x50,0x53}));
