@@ -291,7 +291,7 @@ public class MAIN extends javax.swing.JFrame {
         consoleThread.start();
         // Set new stream for System.out
         System.setOut(new PrintStream(rawout, true));
-        MatrizMaster mat = new MatrizMaster("matriz.csv","matrizRepartidores.csv","matrizVehiculos.csv");
+        MatrizMaster mat = new MatrizMaster("matriz2.csv","matrizRepartidores.csv","matrizVehiculos.csv");
 //        MatrizMaster mat = new MatrizMaster(csvBuses,csvRepartidores,csvVehiculos);
         System.out.println("csvBuses: " + csvBuses + " | csvRepartidores:" + csvRepartidores + "| csvVehiculos" + csvVehiculos);
         mat.getEntregas();

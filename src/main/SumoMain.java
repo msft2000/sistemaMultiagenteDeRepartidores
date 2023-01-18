@@ -45,9 +45,11 @@ public class SumoMain {
             Inicialización de SUMO y suscribción de variables
         */
         System.loadLibrary("libtracijni");
-        //Simulation.start(new StringVector(new String[]{"sumo-gui", "-c", "mapa2Way.sumocfg"}),50109);
-        Simulation.start(new StringVector(new String[]{}),50109);
-        int[] co = new int[]{libtraci.getVAR_ARRIVED_VEHICLES_IDS(), 0x66};//Se solicita la información referente a los autos que ya han finalizado sus rutas
+        Simulation.start(new StringVector(new String[]{"sumo-gui", "-c", "mapa2Way.sumocfg"}),50109);
+        //Simulation.start(new StringVector(new String[]{}),50109);
+        int[] co = new int[]{0x7a, 0x66};//Se solicita la información referente a los autos que ya han finalizado sus rutas
+        //0x7a: id arrived vehicless
+        //0x66: current simulation time
         Simulation.subscribe(new IntVector(co));
         /*Edge.getIDList().forEach((el)->{
             if(((String)el).contains("E")) Edge.subscribe((String) el, new IntVector(new int[]{0x5a})); 
