@@ -90,9 +90,17 @@ public class SumoMainGui extends javax.swing.JFrame {
         jLabel11.setFont(new java.awt.Font("Helvetica Neue", 0, 14)); // NOI18N
         jLabel11.setText("Matriz Autos:");
         getContentPane().add(jLabel11, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 70, -1, -1));
+
+        txtCapacidadBuses.setText("45");
         getContentPane().add(txtCapacidadBuses, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 220, 139, -1));
+
+        txtVelocidadRepartidoresBicicleta.setText("8");
         getContentPane().add(txtVelocidadRepartidoresBicicleta, new org.netbeans.lib.awtextra.AbsoluteConstraints(190, 280, 139, -1));
+
+        txtVelocidadBuses.setText("20");
         getContentPane().add(txtVelocidadBuses, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 190, 139, -1));
+
+        txtVelocidadVehiculos.setText("25");
         getContentPane().add(txtVelocidadVehiculos, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 130, 139, -1));
 
         csvRepartidoresSeleccionar.setText("Seleccionar");
@@ -124,6 +132,8 @@ public class SumoMainGui extends javax.swing.JFrame {
         jScrollPane1.setViewportView(txtSalida);
 
         getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(390, 20, 534, 330));
+
+        txtVelocidadRepartidoresMoto.setText("20");
         getContentPane().add(txtVelocidadRepartidoresMoto, new org.netbeans.lib.awtextra.AbsoluteConstraints(190, 310, 139, -1));
 
         jLabel8.setText("Velocidad Moto  (m/s):");

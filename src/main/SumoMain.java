@@ -67,7 +67,7 @@ public class SumoMain {
          */
         //MatrizOD busOD = new MatrizOD(csvBuses);
         //addViajeBus(busOD.getNodosViajeDisponible());
-        MatrizMaster matVehiculos=new MatrizMaster(csvRepartidores,csvBuses,csvAutos);
+        MatrizMaster matVehiculos=new MatrizMaster(csvBuses,csvRepartidores,csvAutos);
         addViajeBus(matVehiculos.getNodosViajeBusDisponible());
         addViajeAuto(matVehiculos.getNodosViajeAutosDisponible());
 
@@ -81,7 +81,7 @@ public class SumoMain {
                 // Código a ejecutar cada segundo
                 Simulation.step();
             }
-        }, 0, 1000);
+        }, 0, 50);
     }
 
     public static SumoMain getInstance() {
@@ -102,7 +102,7 @@ public class SumoMain {
     
     private void addViajeAuto(ArrayList<Nodo> nodos) {//Lee los viajes de bus y los anexa a los agentes
         for (Nodo i : nodos) {
-            for (Nodo j : i.getViajesBus().keySet()) {
+            for (Nodo j : i.getViajesAutos().keySet()) {
                 /*Asignación de ruta y caracteristicas al Bus*/
                 addViajeAuto(i, j);
             }
@@ -114,7 +114,7 @@ public class SumoMain {
         String ruta = origen.getID() + "_" + destino.getID() + "_" + salt;//Código de ruta
         String id = "Bus_" + ruta;//Código de bus
         double travelTime = addSimulacionVehiculo(id, ruta, origen.getEnlacesOut()[0], destino.getEnlacesIn()[0], "Bus", cBuses+"",vBuses);//Agrega el vehiculo a la simulación
-        addAgenteVehiculo(buses, id, "main.BusAgent", origen, destino, cBuses+"", travelTime);//anexa el agente al vehiculo
+        addAgenteVehiculo(buses, id, "Agentes.BusAgent", origen, destino, cBuses+"", travelTime);//anexa el agente al vehiculo
     }
     
     public void addViajeAuto(Nodo origen, Nodo destino) {//Agrega un bus a la simulación
@@ -122,7 +122,7 @@ public class SumoMain {
         String ruta = origen.getID() + "_" + destino.getID() + "_" + salt;//Código de ruta
         String id = "Auto_" + ruta;//Código de bus
         double travelTime = addSimulacionVehiculo(id, ruta, origen.getEnlacesOut()[0], destino.getEnlacesIn()[0], "Auto", "",vAutos);//Agrega el vehiculo a la simulación
-        addAgenteVehiculo(autos, id, "main.AutoAgent", origen, destino, "", travelTime);//anexa el agente al vehiculo
+        addAgenteVehiculo(autos, id, "Agentes.AutoAgent", origen, destino, "", travelTime);//anexa el agente al vehiculo
     }
 
 

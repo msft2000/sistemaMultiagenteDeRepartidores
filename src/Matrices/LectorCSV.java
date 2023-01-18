@@ -9,7 +9,6 @@ import java.util.ArrayList;
 public class LectorCSV {
     private ArrayList<String[]> Matrix;
     public LectorCSV() {
-        Matrix=new ArrayList<>();
     }
     
     private void readFile(String path){
@@ -28,7 +27,7 @@ public class LectorCSV {
         
     }
      public ArrayList<String[]> getMatrix(String path){
-         Matrix.clear();
+         Matrix=new ArrayList<>();
          readFile(path);
          return Matrix;
      }
