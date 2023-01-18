@@ -3,6 +3,12 @@ package main;
 
 import Matrices.MatrizMaster;
 import VIEW.MAIN;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 public class Main {
    public static void main(String[] args) {
@@ -10,7 +16,38 @@ public class Main {
 //       mat.getNodosViajeDisponibleVehiculos();
 //       MAIN formulario = new MAIN();
 //       formulario.setVisible(true);
-       SumoMain.getInstance();       
+       SumoMain.getInstance();      
+//        Process mProcess;         
+//        try{
+////            mProcess = Runtime.getRuntime().exec(new String[]{"python3","main.py","J1","Red2Way.net.xml","i"+""},null,new File("."));
+////            InputStream stdout = mProcess.getInputStream();
+////            BufferedReader reader = new BufferedReader(new InputStreamReader(stdout,StandardCharsets.UTF_8));
+//            mProcess = Runtime.getRuntime().exec(new String[]{"python3","main.py","J1","Red2Way.net.xml","i"+ ""},null,new File("."));
+//            InputStream stdout = mProcess.getInputStream();
+//            BufferedReader reader = new BufferedReader(new InputStreamReader(stdout,StandardCharsets.UTF_8));
+//            String line;
+//            String aux="";
+//            while((line = reader.readLine()) != null){
+//                aux=aux+line;
+//            }
+//            System.out.println(aux.split(";"));
+//        }catch(Exception e) {
+//           System.out.println("Exception Raised" + e.toString());
+//        }
+//        ProcToString pts=new ProcToString("python3","main.py","J1","Red2Way.net.xml","i");
+////        ProcToString pts=new ProcToString("bash","bin.sh");
+//
+//        try {
+//            System.out.println(pts.runProcess());
+//            System.out.println(pts.runProcess());
+////            System.out.println(pts.hasResult());
+//            if (pts.hasResult()){
+//                String resultado = pts.getResult();
+//                System.out.println(resultado);
+//            }
+//        } catch (IOException | InterruptedException e) {
+//            e.printStackTrace();
+//        }
    }
         /*
         //MatrizOD mat=new MatrizOD("matriz.csv");
@@ -65,5 +102,4 @@ public class Main {
             
         Simulation.close();*/
     //}
-    
 }
