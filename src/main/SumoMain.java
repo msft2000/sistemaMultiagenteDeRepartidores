@@ -1,5 +1,6 @@
 package main;
 
+import Matrices.MatrizMaster;
 import Matrices.MatrizOD;
 import VIEW.MAIN;
 import jade.Boot;
@@ -18,6 +19,7 @@ public class SumoMain {
     private static SumoMain instance;
     private jade.core.Runtime jadeRunTime;
     private ContainerController repartidores, autos, buses;
+    private int vAutos,vBuses,cBuses,vBici,vMoto;
     private MAIN guiMain;
 
     public SumoMain() {
@@ -25,40 +27,47 @@ public class SumoMain {
         guiMain.setVisible(true);
     }
 
-    public void iniciar(String csvBuses,String csvRepartidores, String csvVehiculos, int velocidadVehiculos, int velocidadBuses, int capacidadBuses, int velocidadRepartidoresBicicleta, int velocidadRepartidoresMoto) {
+    public void iniciar(String csvBuses,String csvRepartidores, String csvAutos, int velocidadVehiculos, int velocidadBuses, int capacidadBuses, int velocidadRepartidoresBicicleta, int velocidadRepartidoresMoto) {
+        this.vAutos=velocidadVehiculos;
+        this.vBuses=velocidadBuses;
+        this.cBuses=capacidadBuses;
+        this.vBici=velocidadRepartidoresBicicleta;
+        this.vMoto=velocidadRepartidoresMoto;
+        
         Boot.main(new String[]{"-gui"});//iniciación de jade.Boot
         /*
             Instancias para la inicialización de jade y sus agentes
          */
         jadeRunTime = jade.core.Runtime.instance();
-        Profile p = new ProfileImpl("localhost", 1099, "MAS-Repartos");//Perfil de los containercontroller
+        Profile p1,p2,p3; 
+        p1= new ProfileImpl("localhost", 1099, "MAS-Repartos");//Perfil de los containercontroller
+        p2= new ProfileImpl("localhost", 1099, "MAS-Repartos");//Perfil de los containercontroller
+        p3= new ProfileImpl("localhost", 1099, "MAS-Repartos");//Perfil de los containercontroller
         //Container y perfil de repartidores
-        p.setParameter(Profile.CONTAINER_NAME, "Repartidores-Container");
-        repartidores = jadeRunTime.createAgentContainer(p);
+        p1.setParameter(Profile.CONTAINER_NAME, "Repartidores-Container");
+        repartidores = jadeRunTime.createAgentContainer(p1);
         //Container y perfil de autos
-        p.setParameter(Profile.CONTAINER_NAME, "Autos-Container");
-        autos = jadeRunTime.createAgentContainer(p);
+        p2.setParameter(Profile.CONTAINER_NAME, "Autos-Container");
+        autos = jadeRunTime.createAgentContainer(p2);
         //Container y perfil de buses
-        p.setParameter(Profile.CONTAINER_NAME, "Buses-Container");
-        buses = jadeRunTime.createAgentContainer(p);
+        p3.setParameter(Profile.CONTAINER_NAME, "Buses-Container");
+        buses = jadeRunTime.createAgentContainer(p3);
         /*
             Inicialización de SUMO y suscribción de variables
         */
         System.loadLibrary("libtracijni");
-        Simulation.start(new StringVector(new String[]{"sumo-gui", "-c", "mapa2Way.sumocfg"}),50109);
-        //Simulation.start(new StringVector(new String[]{}),50109);
+        Simulation.start(new StringVector(new String[]{"sumo-gui", "-c", "mapa2Way.sumocfg"}));
         int[] co = new int[]{0x7a, 0x66};//Se solicita la información referente a los autos que ya han finalizado sus rutas
         //0x7a: id arrived vehicless
         //0x66: current simulation time
         Simulation.subscribe(new IntVector(co));
-        /*Edge.getIDList().forEach((el)->{
-            if(((String)el).contains("E")) Edge.subscribe((String) el, new IntVector(new int[]{0x5a})); 
-        });*/
  /*
             Carga de las matrices de datos de viajes
          */
-        MatrizOD busOD = new MatrizOD(csvBuses);
-        addViajeBus(busOD.getNodosViajeDisponible());
+        //MatrizOD busOD = new MatrizOD(csvBuses);
+        //addViajeBus(busOD.getNodosViajeDisponible());
+        MatrizMaster matVehiculos=new MatrizMaster(csvRepartidores,csvBuses,csvAutos);
+        addViajeBus(matVehiculos.getNodosViajeBusDisponible());
 
         /*
             Thread encargado de avanzar la simulación cada 1 segundo
@@ -88,6 +97,15 @@ public class SumoMain {
             }
         }
     }
+    
+    private void addViajeAuto(ArrayList<Nodo> nodos) {//Lee los viajes de bus y los anexa a los agentes
+        for (Nodo i : nodos) {
+            for (Nodo j : i.getViajesBus().keySet()) {
+                /*Asignación de ruta y caracteristicas al Bus*/
+                addViajeAuto(i, j);
+            }
+        }
+    }
 
     public void addViajeBus(Nodo origen, Nodo destino) {//Agrega un bus a la simulación
         int salt = java.time.LocalDateTime.now().hashCode();//Código de bus - hash de la fecha y hora actuales
@@ -96,6 +114,15 @@ public class SumoMain {
         double travelTime = addSimulacionVehiculo(id, ruta, origen.getEnlacesOut()[0], destino.getEnlacesIn()[0], "Bus", "95");//Agrega el vehiculo a la simulación
         addAgenteVehiculo(buses, id, "main.BusAgent", origen, destino, 95, travelTime);//anexa el agente al vehiculo
     }
+    
+    public void addViajeAuto(Nodo origen, Nodo destino) {//Agrega un bus a la simulación
+        int salt = java.time.LocalDateTime.now().hashCode();//Código de bus - hash de la fecha y hora actuales
+        String ruta = origen.getID() + "_" + destino.getID() + "_" + salt;//Código de ruta
+        String id = "Auto_" + ruta;//Código de bus
+        double travelTime = addSimulacionVehiculo(id, ruta, origen.getEnlacesOut()[0], destino.getEnlacesIn()[0], "DEFAULT_VEHTYPE", "95");//Agrega el vehiculo a la simulación
+        addAgenteVehiculo(autos, id, "main.AutoAgent", origen, destino, 95, travelTime);//anexa el agente al vehiculo
+    }
+
 
     private void addAgenteVehiculo(ContainerController container, String idAgente, String classAgent, Nodo origen, Nodo destino, int capacidad, double travelTime) {
         if (container != null) {

@@ -28,6 +28,7 @@ public class LectorCSV {
         
     }
      public ArrayList<String[]> getMatrix(String path){
+         Matrix.clear();
          readFile(path);
          return Matrix;
      }

@@ -1,7 +1,6 @@
 
 package Matrices;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import main.Nodo;
@@ -9,24 +8,23 @@ import main.Repartidor;
 
 
 public class MatrizMaster {
-    private ArrayList<String[]> matrizNodos;//Matriz OD leida
+    private ArrayList<String[]> matrizBuses;//Matriz OD leida
     private ArrayList<String[]> matrizRepartidores;
-    private ArrayList<String[]> matrizVehiculos;
+    private ArrayList<String[]> matrizAutos;
     private Object[] nodosOrigen;//Nodos origen de la matriz 
     private Object[] nodosDestino;//Nodos destino de la matriz
     private HashMap<String,Nodo> Nodos;
     private ArrayList<Repartidor> repartidores;
     
-    public MatrizMaster(String pathNodos, String pathRepartidores, String pathVeiculos) {
+    public MatrizMaster(String pathBuses, String pathRepartidores, String pathVeiculos) {
         //path: dirección del archivo csv de la matriz a leer
         Nodos=new HashMap<>();
         repartidores=new ArrayList<Repartidor>();
         LectorCSV read=new LectorCSV();
-        LectorCSV read2=new LectorCSV();
-        LectorCSV read3=new LectorCSV();
-        matrizNodos=read.getMatrix(pathNodos);//se lee el csv y se genera la matriz (index del ArrayList - filas, index de String[] - columnas)
-        matrizRepartidores=read2.getMatrix(pathRepartidores);
-        matrizVehiculos=read3.getMatrix(pathVeiculos);
+        //matrizNodos=read.getMatrix(pathNodos);//se lee el csv y se genera la matriz (index del ArrayList - filas, index de String[] - columnas)
+        matrizBuses=read.getMatrix(pathBuses);
+        matrizRepartidores=read.getMatrix(pathRepartidores);
+        matrizAutos=read.getMatrix(pathVeiculos);
         nodosOrigen=getNodosOrigen();//se obtienen todos los nodos origen disponibles de la matriz
         nodosDestino=getNodosDestino();//se obtienen todos los nodos destino disponibles de la matriz
         setViajesBus();//se organizan los viajes de bus por nodo
@@ -36,7 +34,7 @@ public class MatrizMaster {
 
     private Object[] getNodosDestino(){
         //Devuelve los nodos que son destino - nodos enumerados en la primera fila
-        String[]aux=matrizNodos.get(0);//primera fila
+        String[]aux=matrizBuses.get(0);//primera fila
         ArrayList<String> nodos =new ArrayList<>();
         for(String i : aux){
             if(!i.equals("")) nodos.add(i);
@@ -47,7 +45,7 @@ public class MatrizMaster {
     private Object[] getNodosOrigen(){
         //Devuelve los nodos que son origen - nodos enumerados en la primera columna de cada fila
         ArrayList<String> nodos =new ArrayList<>();
-        for(String[] i: matrizNodos){
+        for(String[] i: matrizBuses){
             if(!i[0].equals("")) nodos.add(i[0]); 
         }
         return nodos.toArray();
@@ -70,7 +68,7 @@ public class MatrizMaster {
                 if(!Nodos.containsKey(idDestino)){//si el nodo no esta creado
                     Nodos.put(idDestino, new Nodo("J"+idDestino));//se crea y agrega el nodo
                 }
-                String valor=matrizNodos.get(i+1)[j+1];//valor en la coordenada origen,destino
+                String valor=matrizBuses.get(i+1)[j+1];//valor en la coordenada origen,destino
                 if (!valor.equals("") && !valor.equals("0")){//si se dispone de un valor se agrega a los viajes desde origen
                     Nodos.get(idOrigen).setViajesBus( Nodos.get(idDestino), Integer.parseInt(valor));
                 }
@@ -118,9 +116,9 @@ public class MatrizMaster {
                 if(!Nodos.containsKey(idDestino)){//si el nodo no esta creado
                     Nodos.put(idDestino, new Nodo("J"+idDestino));//se crea y agrega el nodo
                 }
-                String valor=matrizVehiculos.get(i+1)[j+1];//valor en la coordenada origen,destino
+                String valor=matrizAutos.get(i+1)[j+1];//valor en la coordenada origen,destino
                 if (!valor.equals("") && !valor.equals("0")){//si se dispone de un valor se agrega a los viajes desde origen
-                    Nodos.get(idOrigen).setViajesVehiculos( Nodos.get(idDestino), Integer.parseInt(valor));
+                    Nodos.get(idOrigen).setViajesAutos(Nodos.get(idDestino), Integer.parseInt(valor));
                 }
             }
         }
@@ -130,7 +128,7 @@ public class MatrizMaster {
         return Nodos.get(id);
     }
     
-    public ArrayList<Nodo> getNodosViajeDisponible(){
+    public ArrayList<Nodo> getNodosViajeBusDisponible(){
         /*
             Devuelve una lista de los nodos que tienen viajes disponibles
         */
@@ -142,10 +140,10 @@ public class MatrizMaster {
     
     }
     
-    public ArrayList<Nodo> getNodosViajeDisponibleVehiculos(){
+    public ArrayList<Nodo> getNodosViajeAutosDisponible(){
         ArrayList<Nodo> nodos=new ArrayList<>();
         for(Nodo i: Nodos.values()){//Se enlistan los nodos que tengan viajes de Bus disponibles
-            if(i.getNumViajesVehiculos()>0) {
+            if(i.getNumViajesAutos()>0) {
                 nodos.add(i); 
             }
         }
@@ -162,9 +160,9 @@ public class MatrizMaster {
         });
     }
     public void getBusesConPasajeros(){
-        this.getNodosViajeDisponible().forEach((nodo)-> System.out.println("id: " + nodo.getID() + " | ocupantes: " + nodo.getNumViajesBus()));
+        this.getNodosViajeBusDisponible().forEach((nodo)-> System.out.println("id: " + nodo.getID() + " | ocupantes: " + nodo.getNumViajesBus()));
     }
     public void getVehiculosEnNodos(){
-        this.getNodosViajeDisponibleVehiculos().forEach((nodo)-> System.out.println("id: " + nodo.getID() + " | cantidadDeVehiculosEnElNodo: " + nodo.getNumViajesVehiculos()));
+        this.getNodosViajeAutosDisponible().forEach((nodo)-> System.out.println("id: " + nodo.getID() + " | cantidadDeVehiculosEnElNodo: " + nodo.getNumViajesAutos()));
     }
 }

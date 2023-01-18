@@ -10,12 +10,12 @@ public class Nodo implements Serializable{
     private String[] enlacesIn;
     private String[] enlacesOut;
     //private HashMap<Nodo,Integer[]> viajesBus;
-    private HashMap<Nodo,Integer> viajesBus;
-    private HashMap<Nodo,Integer> viajesVehiculos;
+    private HashMap<Nodo,Integer> viajesBus;//viajes que realizan los buses
+    private HashMap<Nodo,Integer> viajesAutos; //viajes que realizan los autos
     public Nodo(String id) {
         this.id=id;//ID de los nodos (junctions de Sumo) los IDs tienen el formato 'Jn'
         viajesBus=new HashMap<>();//Mapa cuya clave es el Nodo destino y el valor es la cantidad de personas que viajan a ese destino
-        viajesVehiculos=new HashMap<>();
+        viajesAutos=new HashMap<>();
         setEnlaces();//Se obtienen los enlaces (Ids de Edges de Sumo) que entran y salen del nodo
     }
     private void setEnlaces(){
@@ -34,14 +34,11 @@ public class Nodo implements Serializable{
     public void setViajesBus(Nodo destino,int value){//Se agrega un viaje al nodo destino y con una cantidad value de pasajeros
         for(Nodo i: viajesBus.keySet()){
             if(i.getID().equals(destino.getID())){
-                if(value!=0) {
-                    //int cont=viajesBus.get(i)[1]+1;
+                if(value!=0) {//Actualización del número de pasajeros faltantes por transportar
                     System.out.println("Viaje "+id+"_"+destino.getID()+" : Faltan "+value+" Pasajeros para completar la ruta");
                     SumoMain.getInstance().addViajeBus(this, destino);
-                    //viajesBus.put(destino, new Integer[]{value,cont});
                     viajesBus.put(destino, value);
                     return;
-                    
                 }
                 else {
                     System.out.println("Viaje "+id+"_"+destino.getID()+" : Viajes terminados");
@@ -50,30 +47,11 @@ public class Nodo implements Serializable{
                 }
             }
         }
-        //viajesBus.put(destino, new Integer[]{value,0});
         viajesBus.put(destino, value);
     }
     
-    public void setViajesVehiculos(Nodo destino,int value){
-        for(Nodo i: viajesVehiculos.keySet()){
-            if(i.getID().equals(destino.getID())){
-                if(value!=0) {
-                    //int cont=viajesBus.get(i)[1]+1;
-                    System.out.println("Viaje "+id+"_"+destino.getID()+" : Faltan "+value+" Pasajeros para completar la ruta");
-                    //viajesBus.put(destino, new Integer[]{value,cont});
-                    viajesVehiculos.put(destino, value);
-                    return;
-                    
-                }
-                else {
-                    System.out.println("Viaje "+id+"_"+destino.getID()+" : Viajes terminados");
-                    viajesVehiculos.remove(i);
-                    return;
-                }
-            }
-        }
-        //viajesBus.put(destino, new Integer[]{value,0});
-        viajesVehiculos.put(destino, value);
+    public void setViajesAutos(Nodo destino,int value){
+        viajesAutos.put(destino, value);
     }
     
     public int getNumViajesBus(){//devuelve el número de viajes de bus que parten del nodo
@@ -88,25 +66,23 @@ public class Nodo implements Serializable{
         for(Nodo i: viajesBus.keySet()){
             if(i.getID().equals(destino.getID())){
                 return viajesBus.get(i);
-                //return viajesBus.get(i)[0];
             }
         }
         return -1;
     }
     
-    public int getNumViajesVehiculos(){//devuelve el número de viajes de bus que parten del nodo
-        return viajesVehiculos.size();
+    public int getNumViajesAutos(){//devuelve el número de viajes de bus que parten del nodo
+        return viajesAutos.size();
     }
     
-    public HashMap<Nodo,Integer> getViajesVehiculos(){
-       return viajesVehiculos;
+    public HashMap<Nodo,Integer> getViajesAutos(){
+       return viajesAutos;
     }
     
-    public int getValueViajeVehiculos(Nodo destino){
-        for(Nodo i: viajesVehiculos.keySet()){
+    public int getValueViajeAutos(Nodo destino){
+        for(Nodo i: viajesAutos.keySet()){
             if(i.getID().equals(destino.getID())){
-                return viajesVehiculos.get(i);
-                //return viajesBus.get(i)[0];
+                return viajesAutos.get(i);
             }
         }
         return -1;
