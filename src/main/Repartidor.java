@@ -8,6 +8,7 @@ import main.Nodo;
 public class Repartidor {
 
     private String id;
+    public String tipoRepartidor;
     private HashMap<Nodo, ArrayList<Nodo>> entregasPendientes;
 
     public Repartidor(String id) {
@@ -37,6 +38,13 @@ public class Repartidor {
             destinos.forEach(des -> System.out.print(" " + des + " "));
             System.out.println("");
         });
+    }
+    
+    public void setTipoRepartidor(String tipoRepartidor){
+        this.tipoRepartidor=tipoRepartidor;
+    }
+    public String getTipoRepartidor(){
+        return this.tipoRepartidor;
     }
 
     @Override
