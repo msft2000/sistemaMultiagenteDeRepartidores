@@ -9,8 +9,9 @@ import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
 import java.util.ArrayList;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.eclipse.sumo.libtraci.*;
 
 public class SumoMain {
@@ -57,31 +58,36 @@ public class SumoMain {
             Inicialización de SUMO y suscribción de variables
         */
         System.loadLibrary("libtracijni");
-        Simulation.start(new StringVector(new String[]{"sumo-gui", "-c", "resources/SumoMaps/mapa2Way2.sumocfg"}));
+        Simulation.start(new StringVector(new String[]{"sumo-gui", "-c", "resources/SumoMaps/mapa2Way2.sumocfg","--start"}));
         int[] co = new int[]{0x7a, 0x66};//Se solicita la información referente a los autos que ya han finalizado sus rutas
         //0x7a: id arrived vehicless
         //0x66: current simulation time
         Simulation.subscribe(new IntVector(co));
- /*
-            Carga de las matrices de datos de viajes
-         */
-        //MatrizOD busOD = new MatrizOD(csvBuses);
-        //addViajeBus(busOD.getNodosViajeDisponible());
-//        MatrizMaster matVehiculos=new MatrizMaster(csvBuses,csvRepartidores,csvAutos);
-        addViajeBus(matVehiculos.getNodosViajeBusDisponible());
-        addViajeAuto(matVehiculos.getNodosViajeAutosDisponible());
+        
 
         /*
-            Thread encargado de avanzar la simulación cada 1 segundo
+            Carga de las matrices de datos de viajes
          */
-        Timer timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
+        //addViajeBus(matVehiculos.getNodosViajeBusDisponible());
+        addViajeAuto(matVehiculos.getNodosViajeAutosDisponible());
+        
+        try {
+            jadeRunTime.createAgentContainer(new ProfileImpl("localhost", 1099, "MAS-Repartos")).createNewAgent("SumoManager", "Agentes.SumoAgent", null).start();//Perfil de los containercontroller
+        } catch (StaleProxyException ex) {
+            ex.printStackTrace();
+        }
+            /*Iniciación de agente sumoManager*/
+                        /*
+            Thread encargado de avanzar la simulación cada 1 segundo
+            */
+            /*Timer timer = new Timer();
+            timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                // Código a ejecutar cada segundo
-                Simulation.step();
+            // Código a ejecutar cada segundo
+            Simulation.step();
             }
-        }, 0, 50);
+            }, 0, 50);*/
     }
 
     public static SumoMain getInstance() {
@@ -108,6 +114,16 @@ public class SumoMain {
             }
         }
     }
+    
+    private void addViajeRepartidor(ArrayList<Repartidor> repartidores) {//Lee los viajes de bus y los anexa a los agentes
+        for (Repartidor rep : repartidores) {
+            HashMap<Nodo, ArrayList<Nodo>> entregas=rep.getEntregasPendientes();
+            for (Nodo clave:entregas.keySet()) {
+                ArrayList<Nodo> valor = entregas.get(clave);
+                valor.forEach((n)->addViajeRepartidor(clave, n, rep.getTipoRepartidor(), rep.getID()));
+            }
+        }
+    }
 
     public void addViajeBus(Nodo origen, Nodo destino) {//Agrega un bus a la simulación
         int salt = java.time.LocalDateTime.now().hashCode();//Código de bus - hash de la fecha y hora actuales
@@ -123,6 +139,14 @@ public class SumoMain {
         String id = "Auto_" + ruta;//Código de bus
         double travelTime = addSimulacionVehiculo(id, ruta, origen.getEnlacesOut()[0], destino.getEnlacesIn()[0], "Auto", "",vAutos);//Agrega el vehiculo a la simulación
         addAgenteVehiculo(autos, id, "Agentes.AutoAgent", origen, destino, "", travelTime);//anexa el agente al vehiculo
+    }
+    
+    public void addViajeRepartidor(Nodo origen, Nodo destino, String tipoRepartidor, String idRepartidor) {//Agrega un bus a la simulación
+        int salt = java.time.LocalDateTime.now().hashCode();//Código de bus - hash de la fecha y hora actuales
+        String ruta = origen.getID() + "_" + destino.getID() + "_" + salt;//Código de ruta
+        String id = idRepartidor + "_" + ruta;//Código de bus
+        double travelTime = addSimulacionVehiculo(id, ruta, origen.getEnlacesOut()[0], destino.getEnlacesIn()[0], tipoRepartidor, "",((tipoRepartidor=="Moto") ? vMoto : vBici));//Agrega el vehiculo a la simulación
+        addAgenteVehiculo(repartidores, id, "Agentes.RepartidorAgent", origen, destino, "", travelTime);//anexa el agente al vehiculo
     }
 
 
@@ -147,7 +171,6 @@ public class SumoMain {
         if(!"".equals(capacidad)) Vehicle.setParameter(idVehiculo, "capacidad", capacidad);
         Vehicle.subscribe(idVehiculo, new IntVector(new int[]{0x50, 0x53}));
         return ruta.getTravelTime();
-        //Vehicle.subscribeContext(idVehiculo,0xaa, 100,new IntVector(new int[]{0x8c,0x50,0x53}));
     }
 
 }
