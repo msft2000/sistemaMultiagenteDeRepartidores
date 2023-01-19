@@ -38,13 +38,13 @@ public class BusAgent extends Agent{
                 TraCIResults Res=Simulation.getSubscriptionResults();
                 StringVector v=new StringVector(Res.get(0x7a).getString().replace('[', ' ').replace(']', ' ').trim().split(","));
 
-                if(v.contains(id)){
+                /*if(v.contains(id)){
                     int numPasajerosRestantes=origen.getValueViaje(destino);
                     int val = ((numPasajerosRestantes<=capacidad) ? 0 : numPasajerosRestantes-capacidad);
                     origen.setViajesBus(destino, val);
                     doDelete();
-                } 
-                else{
+                } */
+                /*else{
                     //0x50: Llega a un enlace nuevo
                     TraCIResults resu=Vehicle.getSubscriptionResults(id);
                     if(resu.containsKey(0x50)){
@@ -81,11 +81,11 @@ public class BusAgent extends Agent{
                     //}
 
                     //System.out.printf("%s_%s Tiempo viaje: %s\nidRuta: %s\nidEdgeActual: %s\ntiempoRecorrido: %s\n",origen.getID(),destino.getID(),travelTime+"",idRuta,idEdgeActual,(currentTime-departTime-10)+"");
-                } 
+                //}
             }
             
         };
-        addBehaviour(b);
+        //addBehaviour(b);
     }
 
     protected void takeDown() {

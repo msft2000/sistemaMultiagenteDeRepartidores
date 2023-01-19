@@ -9,8 +9,8 @@ import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
 import java.util.ArrayList;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.eclipse.sumo.libtraci.*;
 
 public class SumoMain {
@@ -57,31 +57,36 @@ public class SumoMain {
             Inicialización de SUMO y suscribción de variables
         */
         System.loadLibrary("libtracijni");
-        Simulation.start(new StringVector(new String[]{"sumo-gui", "-c", "resources/SumoMaps/mapa2Way2.sumocfg"}));
+        Simulation.start(new StringVector(new String[]{"sumo-gui", "-c", "resources/SumoMaps/mapa2Way2.sumocfg","--start"}));
         int[] co = new int[]{0x7a, 0x66};//Se solicita la información referente a los autos que ya han finalizado sus rutas
         //0x7a: id arrived vehicless
         //0x66: current simulation time
         Simulation.subscribe(new IntVector(co));
- /*
-            Carga de las matrices de datos de viajes
-         */
-        //MatrizOD busOD = new MatrizOD(csvBuses);
-        //addViajeBus(busOD.getNodosViajeDisponible());
-//        MatrizMaster matVehiculos=new MatrizMaster(csvBuses,csvRepartidores,csvAutos);
-        addViajeBus(matVehiculos.getNodosViajeBusDisponible());
-        addViajeAuto(matVehiculos.getNodosViajeAutosDisponible());
+        
 
         /*
-            Thread encargado de avanzar la simulación cada 1 segundo
+            Carga de las matrices de datos de viajes
          */
-        Timer timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
+        //addViajeBus(matVehiculos.getNodosViajeBusDisponible());
+        addViajeAuto(matVehiculos.getNodosViajeAutosDisponible());
+        
+        try {
+            jadeRunTime.createAgentContainer(new ProfileImpl("localhost", 1099, "MAS-Repartos")).createNewAgent("SumoManager", "Agentes.SumoAgent", null).start();//Perfil de los containercontroller
+        } catch (StaleProxyException ex) {
+            ex.printStackTrace();
+        }
+            /*Iniciación de agente sumoManager*/
+                        /*
+            Thread encargado de avanzar la simulación cada 1 segundo
+            */
+            /*Timer timer = new Timer();
+            timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                // Código a ejecutar cada segundo
-                Simulation.step();
+            // Código a ejecutar cada segundo
+            Simulation.step();
             }
-        }, 0, 50);
+            }, 0, 50);*/
     }
 
     public static SumoMain getInstance() {
@@ -147,7 +152,6 @@ public class SumoMain {
         if(!"".equals(capacidad)) Vehicle.setParameter(idVehiculo, "capacidad", capacidad);
         Vehicle.subscribe(idVehiculo, new IntVector(new int[]{0x50, 0x53}));
         return ruta.getTravelTime();
-        //Vehicle.subscribeContext(idVehiculo,0xaa, 100,new IntVector(new int[]{0x8c,0x50,0x53}));
     }
 
 }
