@@ -323,10 +323,11 @@ public class SumoMainGui extends javax.swing.JFrame {
         this.csvBuses="resources/MatricesCSV/matriz.csv";
         this.csvRepartidores="resources/MatricesCSV/matrizRepartidores.csv";
         this.csvVehiculos="resources/MatricesCSV/matrizVehiculos.csv";
+        Object [] tiposRepartidor ={"Bicicleta","Moto"}; 
         String tipoRepartidor="";
         mat=new MatrizMaster(csvBuses, csvRepartidores, csvVehiculos);
         for (int i=0;i<mat.getRepartidores().size();i++) {
-            tipoRepartidor=JOptionPane.showInputDialog("El repartidor: " + mat.getRepartidores().get(i).getID() + " sera de tipo Moto(M), o Bisicleta(B)");
+            tipoRepartidor=(String)JOptionPane.showInputDialog(null,"Selecciona el tipo de repartidor", "Elegir",JOptionPane.QUESTION_MESSAGE,null,tiposRepartidor, tiposRepartidor[0]);
             mat.getRepartidores().get(i).setTipoRepartidor(tipoRepartidor);
         }
     }//GEN-LAST:event_cargarMatricesActionPerformed

@@ -99,6 +99,16 @@ public class SumoMain {
             }
         }
     }
+    
+    private void addViajeRepartidor(ArrayList<Repartidor> repartidores) {//Lee los viajes de bus y los anexa a los agentes
+        for (Repartidor rep : repartidores) {
+            HashMap<Nodo, ArrayList<Nodo>> entregas=rep.getEntregasPendientes();
+            for (Nodo clave:entregas.keySet()) {
+                ArrayList<Nodo> valor = entregas.get(clave);
+                valor.forEach((n)->addViajeRepartidor(clave, n, rep.getTipoRepartidor(), rep.getID()));
+            }
+        }
+    }
 
     public void addViajeBus(Nodo origen, Nodo destino) {//Agrega un bus a la simulación
         int salt = java.time.LocalDateTime.now().hashCode();//Código de bus - hash de la fecha y hora actuales
@@ -114,6 +124,14 @@ public class SumoMain {
         String id = "Auto_" + ruta;//Código de bus
         double travelTime = addSimulacionVehiculo(id, ruta, origen.getEnlacesOut()[0], destino.getEnlacesIn()[0], "Auto", "",vAutos);//Agrega el vehiculo a la simulación
         addAgenteVehiculo(autos, id, "Agentes.AutoAgent", origen, destino, "", travelTime);//anexa el agente al vehiculo
+    }
+    
+    public void addViajeRepartidor(Nodo origen, Nodo destino, String tipoRepartidor, String idRepartidor) {//Agrega un bus a la simulación
+        int salt = java.time.LocalDateTime.now().hashCode();//Código de bus - hash de la fecha y hora actuales
+        String ruta = origen.getID() + "_" + destino.getID() + "_" + salt;//Código de ruta
+        String id = idRepartidor + "_" + ruta;//Código de bus
+        double travelTime = addSimulacionVehiculo(id, ruta, origen.getEnlacesOut()[0], destino.getEnlacesIn()[0], tipoRepartidor, "",((tipoRepartidor=="Moto") ? vMoto : vBici));//Agrega el vehiculo a la simulación
+        addAgenteVehiculo(repartidores, id, "Agentes.RepartidorAgent", origen, destino, "", travelTime);//anexa el agente al vehiculo
     }
 
 

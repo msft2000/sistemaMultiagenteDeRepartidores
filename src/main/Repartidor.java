@@ -31,14 +31,17 @@ public class Repartidor {
             entregasPendientes.put(origen, auxEntregas);
         }
     }
-
-    public void getEntregasPendientes() {
-        entregasPendientes.forEach((origen, destinos) -> {
-            System.out.print("Origen: " + origen + ": destinos: ");
-            destinos.forEach(des -> System.out.print(" " + des + " "));
-            System.out.println("");
-        });
+    public HashMap<Nodo, ArrayList<Nodo>> getEntregasPendientes() {
+        return entregasPendientes;
     }
+
+//    public void getEntregasPendientes() {
+//        entregasPendientes.forEach((origen, destinos) -> {
+//            System.out.print("Origen: " + origen + ": destinos: ");
+//            destinos.forEach(des -> System.out.print(" " + des + " "));
+//            System.out.println("");
+//        });
+//    }
     
     public void setTipoRepartidor(String tipoRepartidor){
         this.tipoRepartidor=tipoRepartidor;
@@ -46,6 +49,8 @@ public class Repartidor {
     public String getTipoRepartidor(){
         return this.tipoRepartidor;
     }
+    
+    
 
     @Override
     public String toString() {
