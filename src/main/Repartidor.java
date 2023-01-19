@@ -1,11 +1,9 @@
 package main;
-
-import Python.PythonScripts;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
-import main.Nodo;
 
-public class Repartidor {
+public class Repartidor implements Serializable{
 
     private String id;
     public String tipoRepartidor;

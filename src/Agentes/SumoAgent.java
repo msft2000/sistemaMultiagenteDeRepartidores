@@ -1,12 +1,9 @@
 package Agentes;
 
 import jade.content.lang.sl.SLCodec;
-import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.core.Agent;
-import jade.core.MessageQueue;
 import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -17,14 +14,9 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.domain.FIPANames;
 import jade.domain.JADEAgentManagement.JADEManagementOntology;
-import jade.domain.JADEAgentManagement.KillAgent;
-import jade.domain.persistence.DeleteAgent;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import jade.lang.acl.UnreadableException;
-import jade.proto.AchieveREInitiator;
 import jade.proto.AchieveREResponder;
-import java.io.IOException;
 import java.util.ArrayList;
 import org.eclipse.sumo.libtraci.Simulation;
 import org.eclipse.sumo.libtraci.StringVector;
@@ -44,7 +36,7 @@ public class SumoAgent extends Agent {
         MessageTemplate template = MessageTemplate.and(
                 MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST),
                 MessageTemplate.MatchPerformative(ACLMessage.REQUEST)); //Plantilla de recepción de mensajes
-        this.setQueueSize(100);
+        this.setQueueSize(1000);
 
         /*Obtener lista de agentes vehiculo----------------------------------------------------------------*/
         addBehaviour(new CyclicBehaviour() {
@@ -73,7 +65,6 @@ public class SumoAgent extends Agent {
             protected void onTick() {
                 if (myAgent.getCurQueueSize() == 0) {
                     Simulation.step();
-                    /*Eliminar vehiculos que han terminado su ruta*/
                     //TraCIResults Res = Simulation.getSubscriptionResults();
                     //StringVector v = new StringVector(Res.get(0x7a).getString().replace('[', ' ').replace(']', ' ').trim().split(","));
                     //doDeleteVehiculos(v);
@@ -100,6 +91,17 @@ public class SumoAgent extends Agent {
             fe.printStackTrace();
         }
     }
+    private void doDeleteVehiculos(StringVector v) {
+        for (int i=0;i<vehiculos.size();i++) {
+            String name = vehiculos.get(i).getLocalName();
+            if (v.contains(name)) {
+                vehiculos.remove(i);
+            }
+        }
+
+    }
+    
+    
 
     protected void takeDown() {
         try {
@@ -109,77 +111,43 @@ public class SumoAgent extends Agent {
         }
     }
 
-    /*private void doDeleteVehiculos(StringVector v) {
-        for (int i=0;i<vehiculos.size();i++) {
-            String name = vehiculos.get(i).getLocalName();
-            if (v.contains(name)) {
-                vehiculos.remove(i);
-                /*KillAgent dA = new KillAgent();
-                dA.setAgent(i);
-                Action actExpr = new Action(getAMS(), dA);
-                ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
-                request.addReceiver(getAMS());
-                request.setOntology(JADEManagementOntology.getInstance().getName());
-                request.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
-                request.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
-                try {
-                    getContentManager().fillContent(request, actExpr);
-                    addBehaviour(new AchieveREInitiator(this, request) {
-                        protected void handleInform(ACLMessage inform) {
-                            //System.out.println("Agent successfully created");
-                        }
-
-                        protected void handleFailure(ACLMessage failure) {
-                            //System.out.println("Error creating agent.");
-                        }
-                    });
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }*/
-            //}
-        //}
-
-    //}
-
-    private class GetData extends AchieveREResponder {
+        private class GetData extends AchieveREResponder {
 
         public GetData(Agent a, MessageTemplate mt) {
             super(a, mt);
         }
-        
+
         @Override
         protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException {
-           
-            /*if(vehiculos.contains(request.getSender())){
-                ACLMessage agree = request.createReply();
-		agree.setPerformative(ACLMessage.AGREE);
-                return agree;
-            }
-            else{
-                throw new RefuseException("check-failed");
-            }*/
             return null;
         }
-
+        
+        @Override
         protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) throws FailureException {
             ACLMessage inform = request.createReply();
-            StringVector Res = Vehicle.getIDList();
+            StringVector Res = Vehicle.getIDList();//Se consulta cuales autos estan en ruta
+            /*if (!vehiculos.contains(request.getSender()))throw new FailureException("Auto Salió de la simulación");//Si el auto que envia el msg esta fuera de ruta se elimina
+            else if(!Res.contains(request.getSender().getLocalName())&&!vehiculos.contains(request.getSender())){
+                throw new FailureException("Auto Salió de la simulación");//Si el auto que envia el msg esta fuera de ruta se elimina
+            }
+            else if(!Res.contains(request.getSender().getLocalName())&&vehiculos.contains(request.getSender())){
+               throw new FailureException("Esperar");
+            }*/
             if(!Res.contains(request.getSender().getLocalName())){
-                throw new FailureException("unexpected-error");
+                throw new FailureException("Auto Salió de la simulación");//Si el auto que envia el msg esta fuera de ruta se elimina
             }
             try {
-                SimulationInfoMsg msg = (SimulationInfoMsg) request.getContentObject();
-                inform.setPerformative(ACLMessage.INFORM);
+                SimulationInfoMsg msg = (SimulationInfoMsg) request.getContentObject();//se recupera el contenido del mensaje
+                inform.setPerformative(ACLMessage.INFORM);//se va a enviar un inform
                 inform.setContentObject(getResultados(msg));
-                //System.out.println("Respondido");
                 return inform;
             } catch (Exception ex) {
-                ex.printStackTrace();
-                throw new FailureException("unexpected-error");
+                throw new FailureException("Auto Salió de la simulación");
             }
         }
 
         private SimulationInfoResponse getResultados(SimulationInfoMsg msg) {
+            //Se procesa la información y se reenruta o no el auto
             SimulationInfoResponse rsp;
             TraCIResults Res = Simulation.getSubscriptionResults();
             TraCIResults resu = Vehicle.getSubscriptionResults(msg.idVehiculo);
@@ -187,11 +155,17 @@ public class SumoAgent extends Agent {
             String idEdgeNuevo = resu.get(0x50).getString();//Enlace en el que se encuentra el vehiculo
             if (!msg.idEnlaceActual.equals(idEdgeNuevo) && idEdgeNuevo.contains("E")) {
                 TraCIStage a = Simulation.findRoute(idEdgeNuevo, msg.idEnlaceDestino, msg.typeVehicle, 0, libtraci.getROUTING_MODE_AGGREGATED());
-                double TravelTime = a.getTravelTime();
+                double TravelTime = a.getTravelTime();//tiempo de viaje promedio desde la nueva Edge
                 StringVector EdgesRuta = a.getEdges();
-                rsp = new SimulationInfoResponse(currentTime, TravelTime, idEdgeNuevo, EdgesRuta.toArray());
+                double CurrentTravelTime=msg.travelTime-(currentTime-msg.departTime);
+                if(CurrentTravelTime>TravelTime){//El nuevo camino calculado es más rapido
+                    Vehicle.setRoute(msg.idVehiculo, EdgesRuta);//Vehiculo reenrutado
+                    double NewTravelTime=TravelTime+(currentTime-msg.departTime);
+                    rsp = new SimulationInfoResponse(currentTime,NewTravelTime , idEdgeNuevo, EdgesRuta.toArray());
+                }
+                else rsp = new SimulationInfoResponse(currentTime, msg.travelTime, idEdgeNuevo, EdgesRuta.toArray());
             } else {
-                rsp = new SimulationInfoResponse(currentTime, -1, idEdgeNuevo, null);
+                rsp = new SimulationInfoResponse(currentTime, msg.travelTime, msg.idEnlaceActual, null);
             }
             return rsp;
         }

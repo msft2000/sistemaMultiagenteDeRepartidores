@@ -9,6 +9,7 @@ import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import org.eclipse.sumo.libtraci.*;
 
 public class SumoMain {
@@ -65,7 +66,7 @@ public class SumoMain {
         /*
             Carga de las matrices de datos de viajes
          */
-        //addViajeBus(matVehiculos.getNodosViajeBusDisponible());
+        addViajeBus(matVehiculos.getNodosViajeBusDisponible());
         addViajeAuto(matVehiculos.getNodosViajeAutosDisponible());
         
         try {
@@ -103,9 +104,10 @@ public class SumoMain {
     private void addViajeRepartidor(ArrayList<Repartidor> repartidores) {//Lee los viajes de bus y los anexa a los agentes
         for (Repartidor rep : repartidores) {
             HashMap<Nodo, ArrayList<Nodo>> entregas=rep.getEntregasPendientes();
-            for (Nodo clave:entregas.keySet()) {
-                ArrayList<Nodo> valor = entregas.get(clave);
-                valor.forEach((n)->addViajeRepartidor(clave, n, rep.getTipoRepartidor(), rep.getID()));
+            for (Nodo origen:entregas.keySet()) {
+                ArrayList<Nodo> destino = entregas.get(origen);
+                addViajeRepartidor(origen, destino.get(0), rep.getTipoRepartidor(), rep);
+                break;
             }
         }
     }
@@ -114,32 +116,33 @@ public class SumoMain {
         int salt = java.time.LocalDateTime.now().hashCode();//Código de bus - hash de la fecha y hora actuales
         String ruta = origen.getID() + "_" + destino.getID() + "_" + salt;//Código de ruta
         String id = "Bus_" + ruta;//Código de bus
-        double travelTime = addSimulacionVehiculo(id, ruta, origen.getEnlacesOut()[0], destino.getEnlacesIn()[0], "Bus", cBuses+"",vBuses);//Agrega el vehiculo a la simulación
-        addAgenteVehiculo(buses, id, "Agentes.BusAgent", origen, destino, cBuses+"", travelTime);//anexa el agente al vehiculo
+        double travelTime = addSimulacionVehiculo(id, ruta, origen.getEnlacesOut()[0], destino.getEnlacesIn()[0], "Bus", cBuses+"",vBuses,false);//Agrega el vehiculo a la simulación
+        addAgenteVehiculo(buses, id, "Agentes.BusAgent", origen, destino, cBuses+"", travelTime,null);//anexa el agente al vehiculo
     }
     
     public void addViajeAuto(Nodo origen, Nodo destino) {//Agrega un bus a la simulación
         int salt = java.time.LocalDateTime.now().hashCode();//Código de bus - hash de la fecha y hora actuales
         String ruta = origen.getID() + "_" + destino.getID() + "_" + salt;//Código de ruta
         String id = "Auto_" + ruta;//Código de bus
-        double travelTime = addSimulacionVehiculo(id, ruta, origen.getEnlacesOut()[0], destino.getEnlacesIn()[0], "Auto", "",vAutos);//Agrega el vehiculo a la simulación
-        addAgenteVehiculo(autos, id, "Agentes.AutoAgent", origen, destino, "", travelTime);//anexa el agente al vehiculo
+        double travelTime = addSimulacionVehiculo(id, ruta, origen.getEnlacesOut()[0], destino.getEnlacesIn()[0], "Auto", "",vAutos,false);//Agrega el vehiculo a la simulación
+        addAgenteVehiculo(autos, id, "Agentes.AutoAgent", origen, destino, "", travelTime,null);//anexa el agente al vehiculo
     }
     
-    public void addViajeRepartidor(Nodo origen, Nodo destino, String tipoRepartidor, String idRepartidor) {//Agrega un bus a la simulación
+    public void addViajeRepartidor(Nodo origen, Nodo destino, String tipoRepartidor, Repartidor repartidor) {//Agrega un bus a la simulación
         int salt = java.time.LocalDateTime.now().hashCode();//Código de bus - hash de la fecha y hora actuales
         String ruta = origen.getID() + "_" + destino.getID() + "_" + salt;//Código de ruta
-        String id = idRepartidor + "_" + ruta;//Código de bus
-        double travelTime = addSimulacionVehiculo(id, ruta, origen.getEnlacesOut()[0], destino.getEnlacesIn()[0], tipoRepartidor, "",((tipoRepartidor=="Moto") ? vMoto : vBici));//Agrega el vehiculo a la simulación
-        addAgenteVehiculo(repartidores, id, "Agentes.RepartidorAgent", origen, destino, "", travelTime);//anexa el agente al vehiculo
+        String id = repartidor.getID() + "_" + ruta;//Código de bus
+        double travelTime = addSimulacionVehiculo(id, ruta, origen.getEnlacesOut()[0], destino.getEnlacesIn()[0], tipoRepartidor, "",((tipoRepartidor=="Moto") ? vMoto : vBici),true);//Agrega el vehiculo a la simulación
+        addAgenteVehiculo(repartidores, id, "Agentes.RepartidorAgent", origen, destino, "", travelTime,repartidor);//anexa el agente al vehiculo
     }
 
 
-    private void addAgenteVehiculo(ContainerController container, String idAgente, String classAgent, Nodo origen, Nodo destino, String capacidad, double travelTime) {
+    private void addAgenteVehiculo(ContainerController container, String idAgente, String classAgent, Nodo origen, Nodo destino, String capacidad, double travelTime,Repartidor r) {
         if (container != null) {
             try {
                 AgentController ac;
                 if (!capacidad.equals("")) ac = container.createNewAgent(idAgente, classAgent, new Object[]{origen, destino, capacidad , travelTime + "", Simulation.getSubscriptionResults().get(0x66).getString()});
+                else if (r!=null) ac = container.createNewAgent(idAgente, classAgent, new Object[]{origen, destino , travelTime + "", Simulation.getSubscriptionResults().get(0x66).getString(),r});
                 else ac = container.createNewAgent(idAgente, classAgent, new Object[]{origen, destino , travelTime + "", Simulation.getSubscriptionResults().get(0x66).getString()});
                 ac.start();
             } catch (StaleProxyException e) {
@@ -148,12 +151,13 @@ public class SumoMain {
         }
     
     }
-    private double addSimulacionVehiculo(String idVehiculo, String idRuta, String idOrigen, String idDestino, String tipo, String capacidad,double velocidadMaxima) {
+    private double addSimulacionVehiculo(String idVehiculo, String idRuta, String idOrigen, String idDestino, String tipo, String capacidad,double velocidadMaxima,boolean stop) {
         TraCIStage ruta = Simulation.findRoute(idOrigen, idDestino, tipo, 0, libtraci.getROUTING_MODE_AGGREGATED());
         Route.add(idRuta, ruta.getEdges());
         Vehicle.add(idVehiculo, idRuta, tipo);
         Vehicle.setMaxSpeed(idVehiculo, velocidadMaxima);//Velocidad máxima del vehiculo
         if(!"".equals(capacidad)) Vehicle.setParameter(idVehiculo, "capacidad", capacidad);
+        if(stop) Vehicle.setStop(idVehiculo,idDestino , -1); //parada para vehiculos que realizan rutas ida y vuelta
         Vehicle.subscribe(idVehiculo, new IntVector(new int[]{0x50, 0x53}));
         return ruta.getTravelTime();
     }

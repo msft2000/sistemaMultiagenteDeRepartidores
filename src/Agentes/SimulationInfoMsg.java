@@ -6,15 +6,20 @@ import org.eclipse.sumo.libtraci.StringVector;
 
 public class SimulationInfoMsg implements Serializable{
     String idVehiculo, idEnlaceDestino,typeVehicle,idEnlaceActual;
+    double travelTime,departTime;
     Object[] EdgesRuta; //en caso de solicitar reenrutado se lee este valor
 
-    public SimulationInfoMsg(String idVehiculo, String idEnlaceDestino, String typeVehicle, String idEnlaceActual, Object[] EdgesRuta) {
+    public SimulationInfoMsg(String idVehiculo, String idEnlaceDestino, String typeVehicle, String idEnlaceActual, double travelTime, double departTime, Object[] EdgesRuta) {
         this.idVehiculo = idVehiculo;
         this.idEnlaceDestino = idEnlaceDestino;
         this.typeVehicle = typeVehicle;
         this.idEnlaceActual = idEnlaceActual;
+        this.travelTime = travelTime;
+        this.departTime = departTime;
         this.EdgesRuta = EdgesRuta;
     }
+
+ 
 
     
 

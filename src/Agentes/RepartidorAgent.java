@@ -16,14 +16,16 @@ import jade.proto.AchieveREInitiator;
 import java.io.IOException;
 import java.util.ArrayList;
 import main.Nodo;
+import main.Repartidor;
 
 
-public class AutoAgent extends Agent{
+public class RepartidorAgent extends Agent{
     private final ArrayList<AID> SumoManagers=new ArrayList<>();
     private String id;//id del agente auto
     private Nodo origen, destino;//nodos del agente
     private String idEdgeActual;//enlace en el que se encuentra el agente
     private double travelTime,departTime;//tiempos de viaje y departure
+    private Repartidor repartidor;
     
     protected void setup() {
         id=this.getAID().getLocalName();//se obtiene el ID del autobus
@@ -32,6 +34,7 @@ public class AutoAgent extends Agent{
         destino=(Nodo)args[1];
         travelTime=Double.parseDouble((String) args[2]);
         departTime=Double.parseDouble((String) args[3]);
+        repartidor=(Repartidor)args[4];
         idEdgeActual=origen.getEnlacesOut()[0];
         
         //One Shot Behaviour para encontrar el agente SumoAgent
