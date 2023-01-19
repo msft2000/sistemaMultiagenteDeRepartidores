@@ -17,6 +17,7 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.domain.FIPANames;
 import jade.domain.JADEAgentManagement.JADEManagementOntology;
+import jade.domain.JADEAgentManagement.KillAgent;
 import jade.domain.persistence.DeleteAgent;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -38,8 +39,8 @@ public class SumoAgent extends Agent {
 
     protected void setup() {
         //getContentManager().registerLanguage(codec);
+        getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL);
         getContentManager().registerOntology(JADEManagementOntology.getInstance());
-        getContentManager().registerLanguage(new SLCodec());
         MessageTemplate template = MessageTemplate.and(
                 MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST),
                 MessageTemplate.MatchPerformative(ACLMessage.REQUEST)); //Plantilla de recepción de mensajes
@@ -73,9 +74,9 @@ public class SumoAgent extends Agent {
                 if (myAgent.getCurQueueSize() == 0) {
                     Simulation.step();
                     /*Eliminar vehiculos que han terminado su ruta*/
-                    TraCIResults Res = Simulation.getSubscriptionResults();
-                    StringVector v = new StringVector(Res.get(0x7a).getString().replace('[', ' ').replace(']', ' ').trim().split(","));
-                    doDeleteVehiculos(v);
+                    //TraCIResults Res = Simulation.getSubscriptionResults();
+                    //StringVector v = new StringVector(Res.get(0x7a).getString().replace('[', ' ').replace(']', ' ').trim().split(","));
+                    //doDeleteVehiculos(v);
                     ACLMessage msg = new ACLMessage(ACLMessage.INFORM_REF);
                     for (AID i : vehiculos) {
                         msg.addReceiver(i);
@@ -108,58 +109,71 @@ public class SumoAgent extends Agent {
         }
     }
 
-    private void doDeleteVehiculos(StringVector v) {
-        for (AID i : vehiculos) {
-            String name = i.getLocalName();
+    /*private void doDeleteVehiculos(StringVector v) {
+        for (int i=0;i<vehiculos.size();i++) {
+            String name = vehiculos.get(i).getLocalName();
             if (v.contains(name)) {
-                DeleteAgent dA = new DeleteAgent();
+                vehiculos.remove(i);
+                /*KillAgent dA = new KillAgent();
                 dA.setAgent(i);
                 Action actExpr = new Action(getAMS(), dA);
                 ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
                 request.addReceiver(getAMS());
                 request.setOntology(JADEManagementOntology.getInstance().getName());
+                request.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
+                request.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
                 try {
                     getContentManager().fillContent(request, actExpr);
-                    /*addBehaviour(new AchieveREInitiator(this, request) {
+                    addBehaviour(new AchieveREInitiator(this, request) {
                         protected void handleInform(ACLMessage inform) {
-                            System.out.println("Agent successfully created");
+                            //System.out.println("Agent successfully created");
                         }
 
                         protected void handleFailure(ACLMessage failure) {
-                            System.out.println("Error creating agent.");
+                            //System.out.println("Error creating agent.");
                         }
-                    });*/
+                    });
                 } catch (Exception e) {
                     e.printStackTrace();
-                }
-            }
-        }
+                }*/
+            //}
+        //}
 
-    }
+    //}
 
     private class GetData extends AchieveREResponder {
 
         public GetData(Agent a, MessageTemplate mt) {
             super(a, mt);
         }
-
+        
         @Override
         protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException {
+           
+            /*if(vehiculos.contains(request.getSender())){
+                ACLMessage agree = request.createReply();
+		agree.setPerformative(ACLMessage.AGREE);
+                return agree;
+            }
+            else{
+                throw new RefuseException("check-failed");
+            }*/
             return null;
         }
 
         protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) throws FailureException {
             ACLMessage inform = request.createReply();
+            StringVector Res = Vehicle.getIDList();
+            if(!Res.contains(request.getSender().getLocalName())){
+                throw new FailureException("unexpected-error");
+            }
             try {
                 SimulationInfoMsg msg = (SimulationInfoMsg) request.getContentObject();
                 inform.setPerformative(ACLMessage.INFORM);
                 inform.setContentObject(getResultados(msg));
                 //System.out.println("Respondido");
                 return inform;
-            } catch (UnreadableException ex) {
-                ex.printStackTrace();
-                throw new FailureException("unexpected-error");
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 ex.printStackTrace();
                 throw new FailureException("unexpected-error");
             }

@@ -9,8 +9,6 @@ import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.eclipse.sumo.libtraci.*;
 
 public class SumoMain {
@@ -57,7 +55,7 @@ public class SumoMain {
             Inicialización de SUMO y suscribción de variables
         */
         System.loadLibrary("libtracijni");
-        Simulation.start(new StringVector(new String[]{"sumo-gui", "-c", "resources/SumoMaps/mapa2Way2.sumocfg","--start"}));
+        Simulation.start(new StringVector(new String[]{"sumo-gui", "-c", "resources/SumoMaps/mapa2Way.sumocfg","--start"}));
         int[] co = new int[]{0x7a, 0x66};//Se solicita la información referente a los autos que ya han finalizado sus rutas
         //0x7a: id arrived vehicless
         //0x66: current simulation time
@@ -75,18 +73,6 @@ public class SumoMain {
         } catch (StaleProxyException ex) {
             ex.printStackTrace();
         }
-            /*Iniciación de agente sumoManager*/
-                        /*
-            Thread encargado de avanzar la simulación cada 1 segundo
-            */
-            /*Timer timer = new Timer();
-            timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-            // Código a ejecutar cada segundo
-            Simulation.step();
-            }
-            }, 0, 50);*/
     }
 
     public static SumoMain getInstance() {

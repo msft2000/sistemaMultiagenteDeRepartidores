@@ -4,7 +4,6 @@ package Agentes;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.OneShotBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
@@ -17,10 +16,7 @@ import jade.proto.AchieveREInitiator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Vector;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import main.Nodo;
-import org.eclipse.sumo.libtraci.Vehicle;
 
 
 public class AutoAgent extends Agent{
@@ -35,11 +31,11 @@ public class AutoAgent extends Agent{
         id=this.getAID().getLocalName();//se obtiene el ID del autobus
         Object[] args=this.getArguments();
         origen=(Nodo)args[0];
-       destino=(Nodo)args[1];
+        destino=(Nodo)args[1];
        //capacidad=Integer.parseInt((String) args[2]);
-       travelTime=Double.parseDouble((String) args[2]);
-       departTime=Double.parseDouble((String) args[3]);
-       idEdgeActual=origen.getEnlacesOut()[0];
+        travelTime=Double.parseDouble((String) args[2]);
+        departTime=Double.parseDouble((String) args[3]);
+        idEdgeActual=origen.getEnlacesOut()[0];
         
         //One Shot Behaviour para encontrar el agente SumoAgent
         addBehaviour(new CyclicBehaviour() { 
@@ -83,7 +79,6 @@ public class AutoAgent extends Agent{
         public void action() {
             ACLMessage msg=myAgent.receive(mt);
             if(msg!=null){ //se dio un step en la simulación
-                //System.out.println("Recibidio inform step()");
                 /*Evaluar el entorno del auto en busca de cambios*/
                 SimulationInfoMsg msgInfoSumo=new SimulationInfoMsg(id,destino.getEnlacesIn()[0] ,"Auto" , idEdgeActual,null);
                 
@@ -118,7 +113,6 @@ public class AutoAgent extends Agent{
         protected void handleInform(ACLMessage inform) {
             try {
                 SimulationInfoResponse rsp=(SimulationInfoResponse)inform.getContentObject();
-                //System.out.println("Recibidido");
                 if (!rsp.idEnlaceNuevo.equals(idEdgeActual)) {//Cambio de enlace
                     double newTravelTime=travelTime-(rsp.currentTime-departTime);
                     if(newTravelTime>rsp.travelTime){
@@ -134,11 +128,12 @@ public class AutoAgent extends Agent{
 
         @Override
         protected void handleRefuse(ACLMessage refuse) {
+            doDelete();
         }
 
         @Override
         protected void handleFailure(ACLMessage failure) {
-        
+            doDelete();
         }
 
         @Override
