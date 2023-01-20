@@ -33,6 +33,9 @@ public class SumoAgent extends Agent {
     ArrayList<AID> vehiculos = new ArrayList<>();
     ArrayList<String> departedVehicles=new ArrayList<>();
     private ThreadedBehaviourFactory tbf = new ThreadedBehaviourFactory();
+    MessageTemplate failure = MessageTemplate.and(
+                MessageTemplate.MatchLanguage(FIPANames.ContentLanguage.FIPA_SL),
+                MessageTemplate.MatchPerformative(ACLMessage.FAILURE)); //Plantilla de recepción de mensajes
     protected void setup() {
         getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL);
         getContentManager().registerOntology(JADEManagementOntology.getInstance());
@@ -41,24 +44,16 @@ public class SumoAgent extends Agent {
                 MessageTemplate.MatchPerformative(ACLMessage.REQUEST)); //Plantilla de recepción de mensajes
         this.setQueueSize(100000);
 
-        /*Obtener lista de agentes vehiculo----------------------------------------------------------------*/
-        addBehaviour(new CyclicBehaviour() {
+        CyclicBehaviour cb=new CyclicBehaviour(){
+            @Override
             public void action() {
-                DFAgentDescription tmp = new DFAgentDescription();
-                ServiceDescription sd = new ServiceDescription();
-                sd.setType("Vehiculos");//Agentes Vehiculo
-                tmp.addServices(sd);
-                try {
-                    DFAgentDescription[] result = DFService.search(myAgent, tmp);
-                    vehiculos.clear();
-                    for (int i = 0; i < result.length; ++i) {
-                        vehiculos.add(result[i].getName());//se agrega el AID del agente SumoManager
-                    }
-                } catch (FIPAException fe) {
-                    fe.printStackTrace();
+                ACLMessage msg=receive(failure);
+                if(msg!=null){
+                    //System.out.println("Error ");
                 }
             }
-        });
+        };
+        addBehaviour(tbf.wrap(cb));
         /*-----------------------------------------------------------------------------------------------*/
 
         addBehaviour(new GetData(this, template));
@@ -68,6 +63,18 @@ public class SumoAgent extends Agent {
             protected void onTick() {
                 if (myAgent.getCurQueueSize() == 0) {/*Avanza la simulación solo si la cola de mensajes está vacía*/
                     Simulation.step();
+                    /*Obtener lista de agentes vehiculo----------------------------------------------------------------*/
+                    DFAgentDescription tmp = new DFAgentDescription();
+                    ServiceDescription sd = new ServiceDescription();
+                    sd.setType("Vehiculos");//Agentes Vehiculo
+                    tmp.addServices(sd);
+                    try {
+                        DFAgentDescription[] result = DFService.search(myAgent, tmp);
+                        vehiculos.clear();
+                        for (int i = 0; i < result.length; ++i) {
+                            vehiculos.add(result[i].getName());//se agrega el AID del agente SumoManager
+                        }
+                    } catch (FIPAException fe) {}
                     /*Se obtienen los autos que se han colocado en la simulación*/
                     departedVehicles.addAll(Simulation.getDepartedIDList());
                     /*Se verifican cuales autos ya han llegado a destino*/
@@ -84,8 +91,6 @@ public class SumoAgent extends Agent {
                 }
             }
         };
-        
-        //addBehaviour(tbf.wrap(tb));
         addBehaviour(tb);
         /*Registro del servicio*/
         DFAgentDescription dfd = new DFAgentDescription();
@@ -130,7 +135,7 @@ public class SumoAgent extends Agent {
 
             @Override
             protected void handleFailure(ACLMessage failure) {
-             
+                // System.out.println("Falla ----");
             }
         });//Se espera la respuesta
     
@@ -141,11 +146,8 @@ public class SumoAgent extends Agent {
     
     @Override
     protected void takeDown() {
-        try {
-            DFService.deregister(this);
-        } catch (FIPAException fe) {
-            fe.printStackTrace();
-        }
+        try { DFService.deregister(this);} 
+        catch (FIPAException fe) {}
     }
 
     private class GetData extends AchieveREResponder {

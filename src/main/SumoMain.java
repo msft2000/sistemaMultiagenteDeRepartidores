@@ -73,7 +73,7 @@ public class SumoMain {
         
         /*Creación de agente SumoManager*/
         try {
-            jadeRunTime.createAgentContainer(new ProfileImpl("localhost", 1099, "MAS-Repartos")).createNewAgent("SumoManager", "Agentes.SumoAgent2", null).start();//Perfil de los containercontroller
+            jadeRunTime.createAgentContainer(new ProfileImpl("localhost", 1099, "MAS-Repartos")).createNewAgent("SumoManager", "Agentes.SumoAgent", null).start();//Perfil de los containercontroller
         } catch (StaleProxyException ex) {
             ex.printStackTrace();
         }
