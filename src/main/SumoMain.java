@@ -56,7 +56,7 @@ public class SumoMain {
             Inicialización de SUMO y suscribción de variables
         */
         System.loadLibrary("libtracijni");
-        Simulation.start(new StringVector(new String[]{"sumo-gui", "-c", "resources/SumoMaps/mapa2Way.sumocfg","--start"}));
+        Simulation.start(new StringVector(new String[]{"sumo-gui", "-c", "resources/SumoMaps/mapa2Way2.sumocfg","--start"}));
         int[] co = new int[]{0x7a, 0x66};//Se solicita la información referente a los autos que ya han finalizado sus rutas
         //0x7a: id arrived vehicless
         //0x66: current simulation time

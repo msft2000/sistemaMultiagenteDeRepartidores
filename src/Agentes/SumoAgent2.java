@@ -33,6 +33,9 @@ public class SumoAgent2 extends Agent {
     ArrayList<AID> vehiculos = new ArrayList<>();
     ArrayList<String> departedVehicles=new ArrayList<>();
     private ThreadedBehaviourFactory tbf = new ThreadedBehaviourFactory();
+    MessageTemplate failure = MessageTemplate.and(
+                MessageTemplate.MatchLanguage(FIPANames.ContentLanguage.FIPA_SL),
+                MessageTemplate.MatchPerformative(ACLMessage.FAILURE)); //Plantilla de recepción de mensajes
     protected void setup() {
         getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL);
         getContentManager().registerOntology(JADEManagementOntology.getInstance());
@@ -41,7 +44,16 @@ public class SumoAgent2 extends Agent {
                 MessageTemplate.MatchPerformative(ACLMessage.REQUEST)); //Plantilla de recepción de mensajes
         this.setQueueSize(100000);
 
-       
+        CyclicBehaviour cb=new CyclicBehaviour(){
+            @Override
+            public void action() {
+                ACLMessage msg=receive(failure);
+                if(msg!=null){
+                    //System.out.println("Error ");
+                }
+            }
+        };
+        addBehaviour(tbf.wrap(cb));
         /*-----------------------------------------------------------------------------------------------*/
 
         addBehaviour(new GetData(this, template));
@@ -123,7 +135,7 @@ public class SumoAgent2 extends Agent {
 
             @Override
             protected void handleFailure(ACLMessage failure) {
-                 System.out.println("Falla ----");
+                // System.out.println("Falla ----");
             }
         });//Se espera la respuesta
     

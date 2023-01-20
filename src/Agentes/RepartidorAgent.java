@@ -212,12 +212,12 @@ public class RepartidorAgent extends Agent{
         @Override
         protected void handleFailure(ACLMessage failure) {
             if(!failure.getContent().equals("Esperar")) doDelete();
-            System.out.println("Falla ----");
+            //System.out.println("Falla ----");
         } 
 
         @Override
         protected void handleRefuse(ACLMessage refuse) {
-            System.out.println("Falla ----");
+            //System.out.println("Falla ----");
         }
 
         
