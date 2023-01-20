@@ -101,8 +101,9 @@ public class AutoAgent extends Agent{
         }
         
     }
+    
     private class ProcesarInfoSumo extends AchieveREInitiator{
-
+        /*Behaviour que maneja las respuestas de SumoAgent referentes a la ubicación y reenrutado del vehiculo*/
         public ProcesarInfoSumo(Agent a,ACLMessage msg) {
             super(a, msg);
         }
@@ -123,7 +124,6 @@ public class AutoAgent extends Agent{
         @Override
         protected void handleFailure(ACLMessage failure) {
             if(!failure.getContent().equals("Esperar")) doDelete();
-            //else myAgent.doWait(10);
         } 
 
         @Override
