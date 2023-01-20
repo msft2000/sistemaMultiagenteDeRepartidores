@@ -202,8 +202,10 @@ public class RepartidorAgent extends Agent{
                 SimulationInfoResponse rsp=(SimulationInfoResponse)inform.getContentObject();
                 if (!rsp.idEnlaceNuevo.equals(idEdgeActual)) {//Cambio de enlace
                     idEdgeActual=rsp.idEnlaceNuevo;//se actualiza el enlace actual del auto
-                    travelTime=rsp.travelTime;//Se actualiza el travel tiem
-                    if(travelTime!=rsp.travelTime) System.out.println("Vehiculo "+id+" reenrutado");   //en caso de haber sido reenrutado            
+                    if(travelTime!=rsp.travelTime) {
+                        System.out.println(id+" | Vehiculo reenrutado");//en caso de haber sido reenrutado  
+                        travelTime=rsp.travelTime;//Se actualiza el travel tiem
+                    }             
                 }
             } catch (UnreadableException ex) {
             }

@@ -66,7 +66,7 @@ public class SumoMain {
         /*
             Carga de las matrices de datos de viajes
          */
-        addViajeBus(matVehiculos.getNodosViajeBusDisponible());
+        //addViajeBus(matVehiculos.getNodosViajeBusDisponible());
         addViajeAuto(matVehiculos.getNodosViajeAutosDisponible());
         addViajeRepartidor(matVehiculos.getRepartidores());
         

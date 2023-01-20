@@ -198,12 +198,13 @@ public class SumoAgent3 extends Agent {
                 double TravelTime = a.getTravelTime();//tiempo de viaje promedio desde la nueva Edge
                 StringVector EdgesRuta = a.getEdges();
                 double CurrentTravelTime=msg.travelTime-(currentTime-msg.departTime);
-                if(CurrentTravelTime>TravelTime){//El nuevo camino calculado es más rapido
+                /*if(CurrentTravelTime>TravelTime){//El nuevo camino calculado es más rapido
                     Vehicle.setRoute(msg.idVehiculo, EdgesRuta);//Vehiculo reenrutado
                     double NewTravelTime=TravelTime+(currentTime-msg.departTime);
                     rsp = new SimulationInfoResponse(currentTime,NewTravelTime , idEdgeNuevo, EdgesRuta.toArray());
-                }
-                else rsp = new SimulationInfoResponse(currentTime, msg.travelTime, idEdgeNuevo, EdgesRuta.toArray());
+                }*/
+                //else rsp = new SimulationInfoResponse(currentTime, msg.travelTime, idEdgeNuevo, EdgesRuta.toArray());
+                 rsp = new SimulationInfoResponse(currentTime, msg.travelTime, idEdgeNuevo, EdgesRuta.toArray());
             } else {
                 rsp = new SimulationInfoResponse(currentTime, msg.travelTime, msg.idEnlaceActual, null);
             }
