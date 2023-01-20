@@ -67,10 +67,11 @@ public class SumoMain {
             Carga de las matrices de datos de viajes
          */
         addViajeBus(matVehiculos.getNodosViajeBusDisponible());
-        addViajeAuto(matVehiculos.getNodosViajeAutosDisponible());
+        //addViajeAuto(matVehiculos.getNodosViajeAutosDisponible());
+        addViajeRepartidor(matVehiculos.getRepartidores());
         
         try {
-            jadeRunTime.createAgentContainer(new ProfileImpl("localhost", 1099, "MAS-Repartos")).createNewAgent("SumoManager", "Agentes.SumoAgent", null).start();//Perfil de los containercontroller
+            jadeRunTime.createAgentContainer(new ProfileImpl("localhost", 1099, "MAS-Repartos")).createNewAgent("SumoManager", "Agentes.SumoAgent2", null).start();//Perfil de los containercontroller
         } catch (StaleProxyException ex) {
             ex.printStackTrace();
         }
@@ -107,6 +108,7 @@ public class SumoMain {
             for (Nodo origen:entregas.keySet()) {
                 ArrayList<Nodo> destino = entregas.get(origen);
                 addViajeRepartidor(origen, destino.get(0), rep.getTipoRepartidor(), rep);
+                destino.remove(0);
                 break;
             }
         }
@@ -131,7 +133,7 @@ public class SumoMain {
     public void addViajeRepartidor(Nodo origen, Nodo destino, String tipoRepartidor, Repartidor repartidor) {//Agrega un bus a la simulación
         int salt = java.time.LocalDateTime.now().hashCode();//Código de bus - hash de la fecha y hora actuales
         String ruta = origen.getID() + "_" + destino.getID() + "_" + salt;//Código de ruta
-        String id = repartidor.getID() + "_" + ruta;//Código de bus
+        String id = repartidor.getID();//Código de bus
         double travelTime = addSimulacionVehiculo(id, ruta, origen.getEnlacesOut()[0], destino.getEnlacesIn()[0], tipoRepartidor, "",((tipoRepartidor=="Moto") ? vMoto : vBici),true);//Agrega el vehiculo a la simulación
         addAgenteVehiculo(repartidores, id, "Agentes.RepartidorAgent", origen, destino, "", travelTime,repartidor);//anexa el agente al vehiculo
     }
@@ -157,7 +159,7 @@ public class SumoMain {
         Vehicle.add(idVehiculo, idRuta, tipo);
         Vehicle.setMaxSpeed(idVehiculo, velocidadMaxima);//Velocidad máxima del vehiculo
         if(!"".equals(capacidad)) Vehicle.setParameter(idVehiculo, "capacidad", capacidad);
-        if(stop) Vehicle.setStop(idVehiculo,idDestino , -1); //parada para vehiculos que realizan rutas ida y vuelta
+        if(stop) Vehicle.setStop(idVehiculo,idDestino , Lane.getLength(idDestino+"_0")); //parada para vehiculos que realizan rutas ida y vuelta
         Vehicle.subscribe(idVehiculo, new IntVector(new int[]{0x50, 0x53}));
         return ruta.getTravelTime();
     }

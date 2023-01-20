@@ -22,10 +22,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import main.Nodo;
 import main.Repartidor;
+import org.eclipse.sumo.libtraci.Simulation;
+import org.eclipse.sumo.libtraci.TraCIStage;
+import org.eclipse.sumo.libtraci.Vehicle;
+import org.eclipse.sumo.libtraci.libtraci;
 
 
-
-public class RepartidorAgent extends Agent{
+public class RepartidorAgent2 extends Agent{
     private final ArrayList<AID> SumoManagers=new ArrayList<>();
     private String id;//id del agente auto
     private Nodo origen, destino;//nodos del agente
@@ -66,83 +69,58 @@ public class RepartidorAgent extends Agent{
             }
         });
         
-        /*Espera mensje de actualización de tiempo de viaje*/
-        addBehaviour(new CyclicBehaviour() {
-            private MessageTemplate tmp=MessageTemplate.MatchPerformative(ACLMessage.INFORM_IF);
-            @Override
-            public void action() {
-                ACLMessage msg=myAgent.receive(tmp);
-                if(msg!=null){
-                    travelTime=Double.parseDouble(msg.getContent());  
-                }
-                else{
-                    block();
-                }
-            }
-        });
-        
-        
         /*Behaviour FIPA REQUEST para procesar detención de vehiculo y cambio de ruta*/
         MessageTemplate template = MessageTemplate.and(
-                MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST_WHEN),
-                MessageTemplate.MatchPerformative(ACLMessage.REQUEST_WHEN)); //Plantilla de recepción de mensajes
+                MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST),
+                MessageTemplate.MatchPerformative(ACLMessage.REQUEST)); //Plantilla de recepción de mensajes
         
-        addBehaviour(new AchieveREResponder(this,template){/*Procesa el cambio de destinos*/
+        /*addBehaviour(new AchieveREResponder(this,template){
             @Override
             protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException {
                 return null;
             }
 
             @Override
-            protected ACLMessage handleRequest(ACLMessage request) throws NotUnderstoodException, RefuseException {
-                return null;
-            }
-            
-            @Override
             protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) throws FailureException {
                 ACLMessage inform = request.createReply();
-                if (viajes.isEmpty()) {
-                    doDelete();
-                }//si el repartidor no tiene más viajes se descarta
+                if (viajes.isEmpty()) doDelete();//si el repartidor no tiene más viajes se descarta
                 if(retorno){
-                    System.out.println(id+": Vuelta - "+idEdgeActual+"-"+origen.getEnlacesIn()[0]);
-                    //inform.setContent(id+";"+idEdgeActual+";"+origen.getEnlacesIn()[0]+";"+repartidor.getTipoRepartidor()+";F");
-                    if(viajes.size()==1 && viajes.get(origen).isEmpty()==true) inform.setContent(id+";"+idEdgeActual+";"+origen.getEnlacesIn()[0]+";"+repartidor.getTipoRepartidor()+";T");
-                    else inform.setContent(id+";"+idEdgeActual+";"+origen.getEnlacesIn()[0]+";"+repartidor.getTipoRepartidor()+";F");
-                    
+                    TraCIStage ruta=Simulation.findRoute(idEdgeActual,origen.getEnlacesIn()[0], repartidor.getTipoRepartidor(), 0,libtraci.getROUTING_MODE_AGGREGATED());
+                    travelTime=ruta.getTravelTime();
+                    Vehicle.setRoute(id, ruta.getEdges());
+                    Vehicle.setStop(id, origen.getEnlacesIn()[0],-1);
+                    Vehicle.resume(id);
                     retorno=false;
                 }
                 else{
                     ArrayList<Nodo> destinos=viajes.get(origen);
-                    if(!destinos.isEmpty()){//Todavia hay viajes desde el origen
+                    if(destinos.size()>0){//Todavia hay viajes desde el origen
                         destino=destinos.get(0);
+                        TraCIStage ruta=Simulation.findRoute(idEdgeActual,destino.getEnlacesIn()[0], repartidor.getTipoRepartidor(), 0,libtraci.getROUTING_MODE_AGGREGATED());
+                        travelTime=ruta.getTravelTime();
                         destinos.remove(destino);
-                        System.out.println(id+": IDA - "+idEdgeActual+"-"+destino.getEnlacesIn()[0]);
-                        inform.setContent(id+";"+idEdgeActual+";"+destino.getEnlacesIn()[0]+";"+repartidor.getTipoRepartidor()+";F");
+                        Vehicle.setRoute(id, ruta.getEdges());
+                        Vehicle.setStop(id, destino.getEnlacesIn()[0],-1);
+                        Vehicle.resume(id);
                         retorno=true;
                     }
                     else{
                         viajes.remove(origen);//se han completado los viajes en el origen
-                        if(viajes.isEmpty()){
-                            doDelete();
-                        }  
-                        else{
+                        destino=(Nodo)viajes.keySet().toArray()[0];
+                        origen=destino;
+                        TraCIStage ruta=Simulation.findRoute(idEdgeActual,destino.getEnlacesIn()[0], repartidor.getTipoRepartidor(), 0,libtraci.getROUTING_MODE_AGGREGATED());
+                        travelTime=ruta.getTravelTime();
+                        Vehicle.setStop(id, destino.getEnlacesIn()[0],-1);
+                        Vehicle.resume(id);
+                        retorno=false;
+                    }
                             
-                            destino=(Nodo)viajes.keySet().toArray()[0];
-                            System.out.println(id+": IDA - "+idEdgeActual+"-"+destino.getEnlacesIn()[0]);
-                            origen=destino;
-                            inform.setContent(id+";"+idEdgeActual+";"+destino.getEnlacesIn()[0]+";"+repartidor.getTipoRepartidor()+";F");
-                            retorno=false;
-                        }
-                        
-                    }        
                 }
-                inform.setPerformative(ACLMessage.INFORM);
+                    
                 return inform;
             }
-  
-        });
-        
+            
+        });*/
         /**---------------------------------------------------------------------------*/
         addBehaviour(new GetInfoSimulacion());
         /*---------------------------------------------------------------------------------------------------*/
@@ -168,7 +146,7 @@ public class RepartidorAgent extends Agent{
             ACLMessage msg=myAgent.receive(mt);
             if(msg!=null){ //se dio un step en la simulación
                 /*Evaluar el entorno del auto en busca de cambios*/
-                SimulationInfoMsg msgInfoSumo=new SimulationInfoMsg(id,destino.getEnlacesIn()[0] ,repartidor.tipoRepartidor , idEdgeActual,travelTime,departTime,null);
+                SimulationInfoMsg msgInfoSumo=new SimulationInfoMsg(id,destino.getEnlacesIn()[0] ,"Auto" , idEdgeActual,travelTime,departTime,null);
                 
                 /*Protocolo de Comunicación FIPA REquest Respond*/
                 ACLMessage rqs = new ACLMessage(ACLMessage.REQUEST);
@@ -189,8 +167,8 @@ public class RepartidorAgent extends Agent{
                 block();
             }
         }
+        
     }
-    
     private class ProcesarInfoSumo extends AchieveREInitiator{
 
         public ProcesarInfoSumo(Agent a,ACLMessage msg) {
