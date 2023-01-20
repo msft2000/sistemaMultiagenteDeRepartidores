@@ -156,9 +156,7 @@ public class RepartidorAgent extends Agent{
 	try {
             DFService.register(this, dfd);
 	}
-	catch (FIPAException fe) {
-            fe.printStackTrace();
-	}  
+	catch (FIPAException fe) {}  
         
     }
     
@@ -168,7 +166,7 @@ public class RepartidorAgent extends Agent{
             ACLMessage msg=myAgent.receive(mt);
             if(msg!=null){ //se dio un step en la simulación
                 /*Evaluar el entorno del auto en busca de cambios*/
-                SimulationInfoMsg msgInfoSumo=new SimulationInfoMsg(id,destino.getEnlacesIn()[0] ,repartidor.tipoRepartidor , idEdgeActual,travelTime,departTime,null);
+                SimulationInfoMsg msgInfoSumo=new SimulationInfoMsg(id,destino.getEnlacesIn()[0] ,repartidor.tipoRepartidor , idEdgeActual,travelTime,departTime);
                 
                 /*Protocolo de Comunicación FIPA REquest Respond*/
                 ACLMessage rqs = new ACLMessage(ACLMessage.REQUEST);
@@ -214,12 +212,12 @@ public class RepartidorAgent extends Agent{
         @Override
         protected void handleFailure(ACLMessage failure) {
             if(!failure.getContent().equals("Esperar")) doDelete();
-            //else myAgent.doWait(10);
+            System.out.println("Falla ----");
         } 
 
         @Override
         protected void handleRefuse(ACLMessage refuse) {
-            
+            System.out.println("Falla ----");
         }
 
         
@@ -228,12 +226,8 @@ public class RepartidorAgent extends Agent{
 
     @Override
     protected void takeDown() {
-        try {
-            DFService.deregister(this);
-	}
-	catch (FIPAException fe) {
-            fe.printStackTrace();
-	}
+        try {DFService.deregister(this);}
+	catch (FIPAException fe) {}
         System.out.println(id+" Repartidor a finalizado su viaje");
     }
     

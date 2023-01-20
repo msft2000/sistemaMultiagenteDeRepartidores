@@ -4,8 +4,6 @@ package Agentes;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.ThreadedBehaviourFactory;
-import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
@@ -82,7 +80,7 @@ public class BusAgent extends Agent{
             ACLMessage msg=myAgent.receive(mt);
             if(msg!=null){ //se dio un step en la simulación
                 /*Evaluar el entorno del auto en busca de cambios*/
-                SimulationInfoMsg msgInfoSumo=new SimulationInfoMsg(id,destino.getEnlacesIn()[0] ,"Auto" , idEdgeActual,travelTime,departTime,null);
+                SimulationInfoMsg msgInfoSumo=new SimulationInfoMsg(id,destino.getEnlacesIn()[0] ,"Auto" , idEdgeActual,travelTime,departTime);
                 
                 /*Protocolo de Comunicación FIPA REquest Respond*/
                 ACLMessage rqs = new ACLMessage(ACLMessage.REQUEST);
@@ -117,8 +115,10 @@ public class BusAgent extends Agent{
                 SimulationInfoResponse rsp=(SimulationInfoResponse)inform.getContentObject();
                 if (!rsp.idEnlaceNuevo.equals(idEdgeActual)) {//Cambio de enlace
                     idEdgeActual=rsp.idEnlaceNuevo;//se actualiza el enlace actual del auto
-                    travelTime=rsp.travelTime;//Se actualiza el travel tiem
-                    if(travelTime!=rsp.travelTime) System.out.println("Vehiculo "+id+" reenrutado");   //en caso de haber sido reenrutado            
+                    if(travelTime!=rsp.travelTime) {
+                        System.out.println(id+" | Vehiculo reenrutado");//en caso de haber sido reenrutado  
+                        travelTime=rsp.travelTime;//Se actualiza el travel tiem
+                    }
                 }
             } catch (UnreadableException ex) {
             }
@@ -127,22 +127,14 @@ public class BusAgent extends Agent{
         @Override
         protected void handleFailure(ACLMessage failure) {
             if(!failure.getContent().equals("Esperar")) doDelete();
-            //else myAgent.doWait(10);
         } 
     }
 
     @Override
     protected void takeDown() {
-        try {
-            DFService.deregister(this);
-	}
-	catch (FIPAException fe) {
-            fe.printStackTrace();
-	}
-        //int numPasajerosRestantes=origen.getValueViaje(destino);
-        //int val = ((numPasajerosRestantes<=capacidad) ? 0 : numPasajerosRestantes-capacidad);
-        //origen.setViajesBus(destino, val);
-        System.out.println(id+"Vehiculo acabo su ruta");
+        try {DFService.deregister(this);}
+	catch (FIPAException fe) {}
+        System.out.println(id+" | Vehiculo acabo su ruta");
     }
     
 }

@@ -4,6 +4,7 @@ import jade.content.lang.sl.SLCodec;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.ThreadedBehaviourFactory;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -16,7 +17,6 @@ import jade.domain.FIPANames;
 import jade.domain.JADEAgentManagement.JADEManagementOntology;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import jade.lang.acl.UnreadableException;
 import jade.proto.AchieveREInitiator;
 import jade.proto.AchieveREResponder;
 import java.util.ArrayList;
@@ -31,58 +31,55 @@ import org.eclipse.sumo.libtraci.libtraci;
 public class SumoAgent2 extends Agent {
 
     ArrayList<AID> vehiculos = new ArrayList<>();
-
+    ArrayList<String> departedVehicles=new ArrayList<>();
+    private ThreadedBehaviourFactory tbf = new ThreadedBehaviourFactory();
     protected void setup() {
-        //getContentManager().registerLanguage(codec);
         getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL);
         getContentManager().registerOntology(JADEManagementOntology.getInstance());
         MessageTemplate template = MessageTemplate.and(
                 MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST),
                 MessageTemplate.MatchPerformative(ACLMessage.REQUEST)); //Plantilla de recepción de mensajes
-        this.setQueueSize(1000);
+        this.setQueueSize(100000);
 
-        /*Obtener lista de agentes vehiculo----------------------------------------------------------------*/
-        addBehaviour(new CyclicBehaviour() {
-            public void action() {
-                DFAgentDescription tmp = new DFAgentDescription();
-                ServiceDescription sd = new ServiceDescription();
-                sd.setType("Vehiculos");//Agentes Vehiculo
-                tmp.addServices(sd);
-                try {
-                    DFAgentDescription[] result = DFService.search(myAgent, tmp);
-                    vehiculos.clear();
-                    for (int i = 0; i < result.length; ++i) {
-                        vehiculos.add(result[i].getName());//se agrega el AID del agente SumoManager
-                    }
-                } catch (FIPAException fe) {
-                    fe.printStackTrace();
-                }
-            }
-        });
+       
         /*-----------------------------------------------------------------------------------------------*/
 
         addBehaviour(new GetData(this, template));
 
-        addBehaviour(new TickerBehaviour(this, 100) {
+        TickerBehaviour tb=new TickerBehaviour(this, 10) {//Avanzar en la simulación
             @Override
             protected void onTick() {
-                if (myAgent.getCurQueueSize() == 0) {
+                if (myAgent.getCurQueueSize() == 0) {/*Avanza la simulación solo si la cola de mensajes está vacía*/
                     Simulation.step();
+                    /*Obtener lista de agentes vehiculo----------------------------------------------------------------*/
+                    DFAgentDescription tmp = new DFAgentDescription();
+                    ServiceDescription sd = new ServiceDescription();
+                    sd.setType("Vehiculos");//Agentes Vehiculo
+                    tmp.addServices(sd);
+                    try {
+                        DFAgentDescription[] result = DFService.search(myAgent, tmp);
+                        vehiculos.clear();
+                        for (int i = 0; i < result.length; ++i) {
+                            vehiculos.add(result[i].getName());//se agrega el AID del agente SumoManager
+                        }
+                    } catch (FIPAException fe) {}
+                    /*Se obtienen los autos que se han colocado en la simulación*/
+                    departedVehicles.addAll(Simulation.getDepartedIDList());
                     /*Se verifican cuales autos ya han llegado a destino*/
                     StringVector stops=Simulation.getStopStartingVehiclesIDList();//Vehiculos que se han detenido
-                    if(!stops.isEmpty())RequestDataCambioRuta(stops);
-                    
-                    /*------------------------------------------------------*/
+                    if(!stops.isEmpty())RequestDataCambioRuta(stops);//Procesar el cambio de ruta de los vehiculos detenidos
+                   
+                    /*--------------Dar aviso a los vehiculos de que la simulación avanzó-------------------*/
                     ACLMessage msg = new ACLMessage(ACLMessage.INFORM_REF);
-                    for (AID i : vehiculos) {
-                        msg.addReceiver(i);
+                    for (AID i : vehiculos) {/*Solo los autos en simulación pueden empezar a solicitar información*/
+                        if(departedVehicles.contains(i.getLocalName()))msg.addReceiver(i);
                     }
                     msg.setContent("Step()");
                     myAgent.send(msg);
                 }
             }
-        });
-
+        };
+        addBehaviour(tb);
         /*Registro del servicio*/
         DFAgentDescription dfd = new DFAgentDescription();
         dfd.setName(getAID());
@@ -92,18 +89,7 @@ public class SumoAgent2 extends Agent {
         dfd.addServices(sd);
         try {
             DFService.register(this, dfd);
-        } catch (FIPAException fe) {
-            fe.printStackTrace();
-        }
-    }
-    private void doDeleteVehiculos(StringVector v) {
-        for (int i=0;i<vehiculos.size();i++) {
-            String name = vehiculos.get(i).getLocalName();
-            if (v.contains(name)) {
-                vehiculos.remove(i);
-            }
-        }
-
+        } catch (FIPAException fe) {}
     }
     
     private void RequestDataCambioRuta(StringVector v){
@@ -131,14 +117,13 @@ public class SumoAgent2 extends Agent {
                     Vehicle.resume(idVehiculo);
                     ACLMessage response=inform.createReply();
                     response.setPerformative(ACLMessage.INFORM_IF);//se va a indicar al agente que actualice su información
-                    //response.setProtocol(FIPA_REQUEST_WHEN);
                     response.setContent(travelTime+"");
                     myAgent.send(response);       
             }
 
             @Override
             protected void handleFailure(ACLMessage failure) {
-             
+                 System.out.println("Falla ----");
             }
         });//Se espera la respuesta
     
@@ -147,12 +132,10 @@ public class SumoAgent2 extends Agent {
     
     }
     
+    @Override
     protected void takeDown() {
-        try {
-            DFService.deregister(this);
-        } catch (FIPAException fe) {
-            fe.printStackTrace();
-        }
+        try { DFService.deregister(this);} 
+        catch (FIPAException fe) {}
     }
 
     private class GetData extends AchieveREResponder {
@@ -170,15 +153,12 @@ public class SumoAgent2 extends Agent {
         protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) throws FailureException {
             ACLMessage inform = request.createReply();
             StringVector Res = Vehicle.getIDList();//Se consulta cuales autos estan en ruta
-            /*if (!vehiculos.contains(request.getSender()))throw new FailureException("Auto Salió de la simulación");//Si el auto que envia el msg esta fuera de ruta se elimina
-            else if(!Res.contains(request.getSender().getLocalName())&&!vehiculos.contains(request.getSender())){
-                throw new FailureException("Auto Salió de la simulación");//Si el auto que envia el msg esta fuera de ruta se elimina
-            }
-            else if(!Res.contains(request.getSender().getLocalName())&&vehiculos.contains(request.getSender())){
-               throw new FailureException("Esperar");
-            }*/
             if(!Res.contains(request.getSender().getLocalName())){
                 throw new FailureException("Auto Salió de la simulación");//Si el auto que envia el msg esta fuera de ruta se elimina
+            }
+            else if(!departedVehicles.contains(request.getSender().getLocalName())){
+                inform.setContent("No Departed");
+                return inform;
             }
             try {
                 SimulationInfoMsg msg = (SimulationInfoMsg) request.getContentObject();//se recupera el contenido del mensaje
@@ -205,11 +185,12 @@ public class SumoAgent2 extends Agent {
                 if(CurrentTravelTime>TravelTime){//El nuevo camino calculado es más rapido
                     Vehicle.setRoute(msg.idVehiculo, EdgesRuta);//Vehiculo reenrutado
                     double NewTravelTime=TravelTime+(currentTime-msg.departTime);
-                    rsp = new SimulationInfoResponse(currentTime,NewTravelTime , idEdgeNuevo, EdgesRuta.toArray());
+                    rsp = new SimulationInfoResponse(currentTime,NewTravelTime , idEdgeNuevo);
                 }
-                else rsp = new SimulationInfoResponse(currentTime, msg.travelTime, idEdgeNuevo, EdgesRuta.toArray());
+                else rsp = new SimulationInfoResponse(currentTime, msg.travelTime, idEdgeNuevo);
+                //rsp = new SimulationInfoResponse(currentTime, msg.travelTime, idEdgeNuevo);
             } else {
-                rsp = new SimulationInfoResponse(currentTime, msg.travelTime, msg.idEnlaceActual, null);
+                rsp = new SimulationInfoResponse(currentTime, msg.travelTime, msg.idEnlaceActual);
             }
             return rsp;
         }

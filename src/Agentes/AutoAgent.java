@@ -78,7 +78,7 @@ public class AutoAgent extends Agent{
             ACLMessage msg=myAgent.receive(mt);
             if(msg!=null){ //se dio un step en la simulación
                 /*Evaluar el entorno del auto en busca de cambios*/
-                SimulationInfoMsg msgInfoSumo=new SimulationInfoMsg(id,destino.getEnlacesIn()[0] ,"Auto" , idEdgeActual,travelTime,departTime,null);
+                SimulationInfoMsg msgInfoSumo=new SimulationInfoMsg(id,destino.getEnlacesIn()[0] ,"Auto" , idEdgeActual,travelTime,departTime);
                 
                 /*Protocolo de Comunicación FIPA REquest Respond*/
                 ACLMessage rqs = new ACLMessage(ACLMessage.REQUEST);
@@ -114,25 +114,22 @@ public class AutoAgent extends Agent{
                 SimulationInfoResponse rsp=(SimulationInfoResponse)inform.getContentObject();
                 if (!rsp.idEnlaceNuevo.equals(idEdgeActual)) {//Cambio de enlace
                     idEdgeActual=rsp.idEnlaceNuevo;//se actualiza el enlace actual del auto
-                    travelTime=rsp.travelTime;//Se actualiza el travel tiem
-                    if(travelTime!=rsp.travelTime) System.out.println("Vehiculo "+id+" reenrutado");   //en caso de haber sido reenrutado            
+                    if(travelTime!=rsp.travelTime) {
+                        System.out.println(id+" | Vehiculo reenrutado");//en caso de haber sido reenrutado  
+                        travelTime=rsp.travelTime;//Se actualiza el travel tiem
+                    }
                 }
             } catch (UnreadableException ex) {
             }
         }
-
         @Override
         protected void handleFailure(ACLMessage failure) {
             if(!failure.getContent().equals("Esperar")) doDelete();
         } 
-
         @Override
         protected void handleRefuse(ACLMessage refuse) {
             
-        }
-
-        
-        
+        } 
     }
 
     @Override
@@ -143,7 +140,7 @@ public class AutoAgent extends Agent{
 	catch (FIPAException fe) {
             fe.printStackTrace();
 	}
-        System.out.println(id+"Vehiculo acabo su ruta");
+        System.out.println(id+" | Vehiculo acabo su ruta");
     }
     
     

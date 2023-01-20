@@ -66,12 +66,14 @@ public class SumoMain {
         /*
             Carga de las matrices de datos de viajes
          */
-        //addViajeBus(matVehiculos.getNodosViajeBusDisponible());
+        
+        addViajeBus(matVehiculos.getNodosViajeBusDisponible());
         addViajeAuto(matVehiculos.getNodosViajeAutosDisponible());
         addViajeRepartidor(matVehiculos.getRepartidores());
         
+        /*Creación de agente SumoManager*/
         try {
-            jadeRunTime.createAgentContainer(new ProfileImpl("localhost", 1099, "MAS-Repartos")).createNewAgent("SumoManager", "Agentes.SumoAgent3", null).start();//Perfil de los containercontroller
+            jadeRunTime.createAgentContainer(new ProfileImpl("localhost", 1099, "MAS-Repartos")).createNewAgent("SumoManager", "Agentes.SumoAgent2", null).start();//Perfil de los containercontroller
         } catch (StaleProxyException ex) {
             ex.printStackTrace();
         }
@@ -177,7 +179,10 @@ public class SumoMain {
         Vehicle.setMaxSpeed(idVehiculo, velocidadMaxima);//Velocidad máxima del vehiculo
         if(!"".equals(capacidad)) Vehicle.setParameter(idVehiculo, "capacidad", capacidad);
         if(stop) Vehicle.setStop(idVehiculo,idDestino , Lane.getLength(idDestino+"_0")); //parada para vehiculos que realizan rutas ida y vuelta
-        Vehicle.subscribe(idVehiculo, new IntVector(new int[]{0x50, 0x53}));
+        Vehicle.subscribe(idVehiculo, new IntVector(new int[]{0x50}));
+        /*
+        0x50: recupera el enlace actual del vehiculo
+        */
         return ruta.getTravelTime();
     }
 
